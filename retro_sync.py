@@ -479,6 +479,8 @@ class RetroSync(object):
                 elif game_id in self.canoe_game_id_dict.keys():
                     save_type = 'canoe'
                 print(f'{game_id} has been updated.')
+                print(f'[{dt.datetime.now()}] Pushing changes from Retroarch saves to SNES.')
+                
                 self.convert_save(game_id, target, save_type)
                 self.push_save(game_id, target, save_type)
         elif target == 'retroarch':
@@ -491,6 +493,8 @@ class RetroSync(object):
                 elif game_id in self.canoe_game_id_dict.keys():
                     save_type = 'canoe'
                 print(f'{game_id} has been updated.')
+                print(f'[{dt.datetime.now()}] Pushing changes from SNES saves to Retroarch.')
+                
                 self.convert_save(game_id, target, save_type)
                 self.push_save(game_id, target, save_type)
     
@@ -526,12 +530,11 @@ class RetroSync(object):
                 
                 if not self.disable_modifications:
                     # Push snes save changes to retroarch
-                    print(f'[{dt.datetime.now()}] Pushing changes from SNES saves to Retroarch.')
+                    
                     #self.push_save_changes(target='retroarch', save_type='canoe')
                     self.push_save_changes(target='retroarch')
                     
                     # Push retroarch save changes to snes
-                    print(f'[{dt.datetime.now()}] Pushing changes from Retroarch saves to SNES.')
                     #self.push_save_changes(target='snes', save_type='canoe')
                     self.push_save_changes(target='snes')
             
@@ -539,7 +542,7 @@ class RetroSync(object):
                 print(f"[{dt.datetime.now()}] SNES Classic is currently unavailable.")
             
             
-            print('')
+            print(f'[{dt.datetime.now()}] Checking for changes again in {TIMEOUT}s.')
             time.sleep(TIMEOUT)
 
 

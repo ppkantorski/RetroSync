@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -435,7 +435,7 @@ class RetroSync(object):
                 local_file_path = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram'
                 remote_file_path = f'{CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram'
                 self.upload_file_via_ftp(local_file_path, remote_file_path)
-                print(f'{local_file_path} has been uploaded to {remote_path}.')
+                print(f'{local_file_path} has been uploaded to {remote_file_path}.')
                 #os.system(f"ftp {self.user_name}@{self.host}:{remote_path} <<< $'put {local_file_path}'")
             elif target == 'retroarch':
                 file_name = self.game_id_dict[game_id]

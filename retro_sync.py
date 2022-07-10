@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.1"
+__version__ = "1.0.0"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -466,13 +466,17 @@ class RetroSync(object):
                 print(f'{local_file_path} has been copied to {remote_file_path}.')
                 #os.system()RA_SAVES_DIR
     
-    def push_save_changes(self, target, save_type='retroarch'):
+    def push_save_changes(self, target):
         
         if target == 'snes':
             while True:
                 if len(self.ra_update_list) == 0:
                     break
                 game_id = self.ra_update_list.pop(0)
+                if game_id in self.game_id_dict.keys():
+                    save_type = 'retroarch'
+                elif game_id in self.canoe_game_id_dict.keys():
+                    save_type = 'canoe'
                 print(f'{game_id} has been updated.')
                 self.convert_save(game_id, target, save_type)
                 self.push_save(game_id, target, save_type)
@@ -481,6 +485,10 @@ class RetroSync(object):
                 if len(self.snes_update_list) == 0:
                     break
                 game_id = self.snes_update_list.pop(0)
+                if game_id in self.game_id_dict.keys():
+                    save_type = 'retroarch'
+                elif game_id in self.canoe_game_id_dict.keys():
+                    save_type = 'canoe'
                 print(f'{game_id} has been updated.')
                 self.convert_save(game_id, target, save_type)
                 self.push_save(game_id, target, save_type)
@@ -518,12 +526,12 @@ class RetroSync(object):
                 if not self.disable_modifications:
                     # Push snes save changes to retroarch
                     print(f'[{dt.datetime.now()}] Pushing changes from SNES saves to Retroarch.')
-                    self.push_save_changes(target='retroarch', save_type='canoe')
+                    #self.push_save_changes(target='retroarch', save_type='canoe')
                     self.push_save_changes(target='retroarch')
                     
                     # Push retroarch save changes to snes
                     print(f'[{dt.datetime.now()}] Pushing changes from Retroarch saves to SNES.')
-                    self.push_save_changes(target='snes', save_type='canoe')
+                    #self.push_save_changes(target='snes', save_type='canoe')
                     self.push_save_changes(target='snes')
             
             else:

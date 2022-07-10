@@ -1,6 +1,7 @@
 # RetroSync
-Sync Retroarch saves between SNES classic and computer
+Sync Retroarch saves between SNES classic and computer.  Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then passed onto the other device.  So using this script is as simple as saving on one device, then seeing your battery save on the other device when starting up the game.
 
+# Installation
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
 2.  Add the local IP for the SNES classic to the `config.py` along with the retroarch folder on your computer you want to sync.
 3.  You will need to install `ftpretty` via `pip3 install ftpretty`.

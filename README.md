@@ -1,7 +1,7 @@
 # RetroSync
 Sync Retroarch saves between SNES classic and computer.
 
-Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then passed onto the other device.  So using this script is as simple as saving on one device, then seeing your battery save on the other device when starting up the game.
+Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then passed onto the other device.  Using this script is as simple running it on a computer, saving on either device, then seeing your battery save on the other device when starting up the game after about a minute or less.
 
 # Installation
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.

@@ -100,10 +100,10 @@ class RetroSync(object):
         ]
         for directory in local_directories:
             if not os.path.exists(directory):
-                os.mkdir(directory)
+                os.makedirs(directory)
         
         if not os.path.exists(RA_SAVES_DIR):
-            os.mkdir(RA_SAVES_DIR)
+            os.makedirs(RA_SAVES_DIR)
         
         dir_list = [i for i in os.listdir(RA_SAVES_DIR) if i != '.DS_Store']
         self.ra_saves_is_empty = (len(dir_list) == 0)
@@ -521,7 +521,7 @@ class RetroSync(object):
     # Primary run
     def start(self):
         
-        TIMEOUT = 20 # check every 30 seconds
+        TIMEOUT = 20 # check every X seconds
         while True:
             print(f'[{dt.datetime.now()}] Pulling Retroarch saves to temporary local directory...')
             self.pull_saves(target='retroarch') # pulls to temporary directory

@@ -3,7 +3,7 @@ Sync Retroarch saves between SNES classic and computer.
 
 Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then passed onto the other device.  Using this script is as simple running it on a computer, saving on either device, then seeing your battery save on the other device when starting up the game after about a minute or less.
 
-- sidenote: You may want to set the hotkey "Quit Retroarch" to DOWN+SELECT if you want saving to be handled properly when pressing the command to return to the SNES menu. This is not an issue with Canoe games. The moment a Canoe game is saved, the battery save is updated immediately.  After changing the hotkeys, RetroArch battery saves will made the moment you click DOWN+SELECT.
+- sidenote: You may want to set the hotkey "Quit Retroarch" to DOWN+SELECT if you want saving to be handled properly when pressing the command to return to the SNES menu. This is not an issue with Canoe games. Otherwise you will have to quit RetroArch manually.  Unlike RetroArch games, moment a Canoe game is saved, the battery save is updated immediately.  After changing the hotkeys, RetroArch battery saves will made the moment you return to the main menu after saving.
 
 
 # Installation

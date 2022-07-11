@@ -39,13 +39,13 @@ CLASSIC_GAMES_DIR = '/var/lib/hakchi/games/snes-usa/.storage'
 # Target directory for retroarch saves
 RA_SAVES_DIR = cfg.RA_SAVES_DIR
 
-
+# Add custom download function to 'ftpretty'
 class ftpretty_mod(ftpretty):
     def __init__(self, *args):
         ftpretty.__init__(self, *args)
         self.extensions = ['.sram',  '.hash']
         self.exclusions = ['CLV-P', 'CLV-G', 'CLV-Z', 'suspendpoint']
-        #self.buffer = 0.05
+        self.buffer = 0.05
     def get_tree_custom(self, remote, local):
         """ Recursively download a directory tree with extensions filter.
         """
@@ -537,10 +537,10 @@ class RetroSync(object):
     # Primary run
     def start(self):
         
-        TIMEOUT = 10 # check every X seconds
+        TIMEOUT = 3 # check every X seconds
         while True:
             
-            print(f'[{dt.datetime.now()}] Searching for SNES classic on local network.')
+            print(f'[{dt.datetime.now()}] Searching for SNES Classic on local network.')
             if self.check_connection():
                 print(f'[{dt.datetime.now()}] SNES Classic is online!')
                 
@@ -553,9 +553,9 @@ class RetroSync(object):
                 self.update_local_saves(target='retroarch')
                 
                 
-                print(f'[{dt.datetime.now()}] Pulling SNES saves to temporary local directory...')
+                print(f'[{dt.datetime.now()}] Pulling miniSNES saves to temporary local directory...')
                 self.pull_saves(target='snes') # pulls to temporary directory
-                print(f'[{dt.datetime.now()}] Pulling Meta data from SNES to generate Game ID Dictionary...')
+                print(f'[{dt.datetime.now()}] Pulling Meta data from SNES/local for Game ID Dictionary...')
                 self.generate_game_id_dicts()
                 
                 pprint(self.game_id_dict)

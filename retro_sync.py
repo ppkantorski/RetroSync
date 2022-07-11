@@ -43,8 +43,10 @@ RA_SAVES_DIR = cfg.RA_SAVES_DIR
 class ftpretty_mod(ftpretty):
     def __init__(self, *args):
         ftpretty.__init__(self, *args)
+        self.extensions = ['.sram',  '.hash']
+        self.exclusions = ['CLV-P', 'CLV-G', 'CLV-Z', 'suspendpoint']
     
-    def get_tree_extension(self, remote, local, extensions):
+    def get_tree_custom(self, remote, local):
         """ Recursively download a directory tree with extensions filter.
         """
         remote = remote.replace('\\', '/')
@@ -53,14 +55,22 @@ class ftpretty_mod(ftpretty):
             remote_path = os.path.join(remote, name)
             local_path = os.path.join(local, name)
             if entry.flags == 'd':
-                if not os.path.exists(local_path):
-                    os.mkdir(local_path)
-                self.get_tree_extension(remote_path, local_path, extensions)
+                
+                continue_search = True
+                for exclusion in self.exclusions:
+                    if exclusion in remote_path:
+                        continue_search = False
+                        break
+                
+                if continue_search and 'CLV-' in remote_path:
+                    if not os.path.exists(local_path):
+                        os.mkdir(local_path)
+                    self.get_tree_custom(remote_path, local_path)
             elif entry.flags == '-':
-                for extension in extensions:
+                for extension in self.extensions:
                     if extension in remote_path:
                         self.get(remote_path, local_path)
-                        
+                        break
             else:
                 pass
 
@@ -131,7 +141,7 @@ class RetroSync(object):
         #self.ftp = paramiko.SFTPClient.from_transport(self.transport)
         
         self.ftp = ftpretty_mod(self.snes_classic_ip, self.user_name, self.password)
-    
+        #self.ftp = ftpretty(self.snes_classic_ip, self.user_name, self.password)
     
     def disconnect_from_ftp(self):
         if not (self.ftp is None):
@@ -163,7 +173,8 @@ class RetroSync(object):
     
     def download_dir_via_ftp(self, from_path, to_path):
         self.connect_to_ftp()
-        self.ftp.get_tree_extension(from_path, to_path, ['.sram',  '.hash'])
+        self.ftp.get_tree_custom(from_path, to_path)
+        #self.ftp.get_tree(from_path, to_path)
         #self.ftp_get_recursive(from_path, to_path)
         self.disconnect_from_ftp()
     
@@ -191,9 +202,10 @@ class RetroSync(object):
     def pull_saves(self, target):
         if target == 'snes':
             # Download saves on SNES Classic to temp directory
-            if os.path.exists(LOCAL_CLASSIC_SAVES_TMP_DIR):
-                shutil.rmtree(LOCAL_CLASSIC_SAVES_TMP_DIR)
-            os.mkdir(LOCAL_CLASSIC_SAVES_TMP_DIR)
+            #if os.path.exists(LOCAL_CLASSIC_SAVES_TMP_DIR):
+            #    shutil.rmtree(LOCAL_CLASSIC_SAVES_TMP_DIR)
+            if not os.path.exists(LOCAL_CLASSIC_SAVES_TMP_DIR):
+                os.mkdir(LOCAL_CLASSIC_SAVES_TMP_DIR)
             self.download_dir_via_ftp(CLASSIC_SAVES_DIR, LOCAL_CLASSIC_SAVES_TMP_DIR)
             #os.system(f'scp -r {self.user_name}@{self.snes_classic_ip}:{CLASSIC_SAVES_DIR} {LOCAL_CLASSIC_SAVES_TMP_DIR}')
         elif target == 'retroarch':
@@ -523,16 +535,19 @@ class RetroSync(object):
         
         TIMEOUT = 20 # check every X seconds
         while True:
-            print(f'[{dt.datetime.now()}] Pulling Retroarch saves to temporary local directory...')
-            self.pull_saves(target='retroarch') # pulls to temporary directory
-            # Update save files within the local directory from the tempoarary directory.
-            # This also generates a list of titles that have been changed on the SNES side
-            print(f'[{dt.datetime.now()}] Updating local retroarch saves from temporary directory...')
-            self.update_local_saves(target='retroarch', save_type='canoe')
-            self.update_local_saves(target='retroarch')
             
+            print(f'[{dt.datetime.now()}] Searching for SNES classic on local network.')
             if self.check_connection():
                 print(f'[{dt.datetime.now()}] SNES Classic is online!')
+                
+                print(f'[{dt.datetime.now()}] Pulling Retroarch saves to temporary local directory...')
+                self.pull_saves(target='retroarch') # pulls to temporary directory
+                # Update save files within the local directory from the tempoarary directory.
+                # This also generates a list of titles that have been changed on the SNES side
+                print(f'[{dt.datetime.now()}] Updating local retroarch saves from temporary directory...')
+                self.update_local_saves(target='retroarch', save_type='canoe')
+                self.update_local_saves(target='retroarch')
+                
                 
                 print(f'[{dt.datetime.now()}] Pulling SNES saves to temporary local directory...')
                 self.pull_saves(target='snes') # pulls to temporary directory
@@ -557,13 +572,15 @@ class RetroSync(object):
                     # Push retroarch save changes to snes
                     #self.push_save_changes(target='snes', save_type='canoe')
                     self.push_save_changes(target='snes')
+                
+                print(f'[{dt.datetime.now()}] Checking for changes again in {TIMEOUT}s.')
+                time.sleep(TIMEOUT)
             
             else:
                 print(f"[{dt.datetime.now()}] SNES Classic is currently unavailable.")
+                time.sleep(5)
             
-            
-            print(f'[{dt.datetime.now()}] Checking for changes again in {TIMEOUT}s.')
-            time.sleep(TIMEOUT)
+
 
 
 if __name__ == '__main__':

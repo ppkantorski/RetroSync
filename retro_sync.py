@@ -533,7 +533,7 @@ class RetroSync(object):
     # Primary run
     def start(self):
         
-        TIMEOUT = 20 # check every X seconds
+        TIMEOUT = 10 # check every X seconds
         while True:
             
             print(f'[{dt.datetime.now()}] Searching for SNES classic on local network.')
@@ -585,4 +585,9 @@ class RetroSync(object):
 
 if __name__ == '__main__':
     retro_sync = RetroSync()
-    retro_sync.start()
+    while True:
+        try:
+            retro_sync.start()
+        except Exception as e:
+            print(e)
+        time.sleep(5)

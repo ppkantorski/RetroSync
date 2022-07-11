@@ -3,6 +3,9 @@ Sync Retroarch saves between SNES classic and computer.
 
 Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then passed onto the other device.  Using this script is as simple running it on a computer, saving on either device, then seeing your battery save on the other device when starting up the game after about a minute or less.
 
+- sidenote: On RetroArch games you may have to go to the RetroArch menu after saving and quit RetroArch for the battery to be properly modified. You can also set the hotkey "Quit Retroarch" to DOWN+SELECT if you want saving to be handled properly when pressing the command to return to the SNES menu. This is not an issue with Canoe games. The moment a Canoe game is saved, the battery save is updated immediately.
+
+
 # Installation
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
 2.  Add the local IP for the SNES classic to the `config.py` along with the retroarch folder on your computer you want to sync.

@@ -45,12 +45,15 @@ class ftpretty_mod(ftpretty):
         ftpretty.__init__(self, *args)
         self.extensions = ['.sram',  '.hash']
         self.exclusions = ['CLV-P', 'CLV-G', 'CLV-Z', 'suspendpoint']
-    
+        self.buffer = 0.05
     def get_tree_custom(self, remote, local):
         """ Recursively download a directory tree with extensions filter.
         """
+        time.sleep(self.buffer) # Buffer to prevent rapid calls
+        
         remote = remote.replace('\\', '/')
-        for entry in self.list(remote, extra=True):
+        entries = self.list(remote, extra=True)
+        for entry in entries:
             name = entry['name']
             remote_path = os.path.join(remote, name)
             local_path = os.path.join(local, name)
@@ -69,6 +72,7 @@ class ftpretty_mod(ftpretty):
             elif entry.flags == '-':
                 for extension in self.extensions:
                     if extension in remote_path:
+                        time.sleep(self.buffer) # Buffer to prevent rapid calls
                         self.get(remote_path, local_path)
                         break
             else:

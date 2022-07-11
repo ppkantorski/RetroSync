@@ -60,7 +60,7 @@ class ftpretty_mod(ftpretty):
                 for extension in extensions:
                     if extension in remote_path:
                         self.get(remote_path, local_path)
-                        break
+                        #break
             else:
                 pass
 

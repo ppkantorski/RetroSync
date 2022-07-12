@@ -1,9 +1,10 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
 import hashlib
+import difflib
 import filecmp
 import json
 import shutil 
@@ -38,13 +39,38 @@ CLASSIC_GAMES_DIR = '/var/lib/hakchi/games/snes-usa/.storage'
 
 # Target directory for retroarch saves
 RA_SAVES_DIR = cfg.RA_SAVES_DIR
+RA_STOCK_GAMES_DIR = cfg.RA_STOCK_GAMES_DIR
+
+STOCK_GAME_ID_DICT = {
+    "CLV-P-SACCE": "CONTRA III THE ALIEN WARS",
+    "CLV-P-SAALE": "Donkey Kong Country",
+    "CLV-P-SAAJE": "EarthBound",
+    "CLV-P-SABTE": "Final Fantasy III",
+    "CLV-P-SAABE": "F-ZERO",
+    "CLV-P-SAAQE": "Kirby Super Star",
+    "CLV-P-SAAKE": "Kirby's Dream Course",
+    "CLV-P-SABCE": "Mega Man X",
+    "CLV-P-SABRE": "Secret of Mana",
+    "CLV-P-SADGE": "Star Fox",
+    "CLV-P-SADKE": "Star Fox 2",
+    "CLV-P-SABHE": "Street Fighter II Turbo: Hyper Fighting",
+    "CLV-P-SACBE": "Super Castlevania IV",
+    "CLV-P-SABDE": "Super Ghouls'n Ghosts",
+    "CLV-P-SAAFE": "Super Mario Kart",
+    "CLV-P-SABQE": "Super Mario RPG: Legend of the Seven Stars",
+    "CLV-P-SAAAE": "Super Mario World",
+    "CLV-P-SAAHE": "Super Metroid",
+    "CLV-P-SAAXE": "Super Punch-Out!!",
+    "CLV-P-SAAEE": "The Legend of Zelda: A Link to the Past",
+    "CLV-P-SADJE": "Yoshi's Island"
+}
 
 # Add custom download function to 'ftpretty'
 class ftpretty_mod(ftpretty):
     def __init__(self, *args):
         ftpretty.__init__(self, *args)
         self.extensions = ['.sram',  '.hash']
-        self.exclusions = ['CLV-P', 'CLV-G', 'CLV-Z', 'suspendpoint']
+        self.exclusions = ['CLV-G', 'CLV-Z', 'suspendpoint']
         self.buffer = 0.05
     def get_tree_custom(self, remote, local):
         """ Recursively download a directory tree with extensions filter.
@@ -97,6 +123,9 @@ class RetroSync(object):
         self.snes_update_list = []
         self.ra_update_list = []
         
+        self.stock_game_id_dict = STOCK_GAME_ID_DICT
+        self.stock_game_id_list = list(self.stock_game_id_dict.keys())
+        
         # Safety Presets
         self.disable_modifications = False
         
@@ -125,7 +154,7 @@ class RetroSync(object):
         if self.ra_saves_is_empty:
             print(f'[{dt.datetime.now()}] RetroArch Saves directory is empty.')
             print(f'[{dt.datetime.now()}] Saves will be populated from SNES.')
-        
+    
     def check_connection(self):
         try:
             test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -315,7 +344,7 @@ class RetroSync(object):
         # Generate list of game IDs from classic tmp dir
         directory_list = os.listdir(LOCAL_CLASSIC_SAVES_TMP_DIR)
         self.game_id_list = [k for k in directory_list if 'CLV' in k and 'CLV-U' not in k and 'CLV-P' not in k]
-        self.canoe_game_id_list = [k for k in directory_list if 'CLV-U' in k]
+        self.canoe_game_id_list = [k for k in directory_list if 'CLV-U' in k or 'CLV-P' in k]
         
         self.game_id_dict = {}
         for game_id in self.game_id_list:
@@ -358,11 +387,33 @@ class RetroSync(object):
             #if meta_data['System'] == 'Nintendo - Game Boy Advance':
             #    game_id_dict[game_id] = game_id_dict[game_id].rsplit( ".", 1 )[ 0 ]
         
+        
+        # Generate Game ID Dict with correct name association and attach i
+        self.generate_stock_game_id_dict()
+        
         self.canoe_game_id_list = list(self.canoe_game_id_dict.keys())
         
         if self.ra_saves_is_empty:
             self.snes_update_list = self.game_id_list + self.canoe_game_id_list
             self.ra_saves_is_empty = False
+    
+    
+    def generate_stock_game_id_dict(self):
+        game_ids = list(STOCK_GAME_ID_DICT.keys())
+        game_names = [x.lower() for x in STOCK_GAME_ID_DICT.values()]
+        file_names = [os.path.splitext(x)[0].lower() for x in os.listdir(RA_STOCK_GAMES_DIR)]
+        
+        actual_file_names = [os.path.splitext(x)[0] for x in os.listdir(RA_STOCK_GAMES_DIR)]
+        
+        for i in range(len(game_names)):
+            game_name = game_names[i]
+            closest_match = difflib.get_close_matches(game_name, file_names, n=1, cutoff=0.4)[0]
+            if len(closest_match) > 0:
+                index = file_names.index(closest_match)
+                self.canoe_game_id_dict[game_ids[i]] = actual_file_names[index]
+            else:
+                print(f'{STOCK_GAME_ID_DICT.values()[i]} could not be found')
+        #pprint(self.canoe_game_id_dict)
     
     def convert_save_to_canoe(self, from_file, to_dir):
         
@@ -553,7 +604,7 @@ class RetroSync(object):
                 self.update_local_saves(target='retroarch')
                 
                 
-                print(f'[{dt.datetime.now()}] Pulling miniSNES saves to temporary local directory...')
+                print(f'[{dt.datetime.now()}] Pulling SNES Classic saves to temporary local directory...')
                 self.pull_saves(target='snes') # pulls to temporary directory
                 print(f'[{dt.datetime.now()}] Pulling Meta data from SNES/local for Game ID Dictionary...')
                 self.generate_game_id_dicts()

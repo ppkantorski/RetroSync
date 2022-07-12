@@ -163,6 +163,13 @@ class RetroSync(object):
             print(f'[{dt.datetime.now()}] RetroArch Saves directory is empty.')
             print(f'[{dt.datetime.now()}] Saves will be populated from SNES.')
     
+    def notify(self, title, text):
+        # Notifications are currenly only working on macOS
+        if sys.platform == 'darwin':
+            os.system("""
+                      osascript -e 'display notification "{}" with title "{}"'
+                      """.format(text, title))
+    
     def check_connection(self):
         try:
             test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -472,8 +479,10 @@ class RetroSync(object):
             if target == 'retroarch':
                 shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm') # copy and convert
                 print(f'[{dt.datetime.now()}] Retroarch save for {file_name} has been overwritten by classic save.')
+                self.notify(title='RetroSync Overwrite', text=f'Retroarch save for {file_name} has been overwritten by Classic save.')
             elif target == 'snes':
                 shutil.copyfile(f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm', f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram')
+                self.notify(title='RetroSync Overwrite', text=f'Classic save for {file_name} has been overwritten by Retroarch save.')
                 print(f'[{dt.datetime.now()}] Classic save for {file_name} has been overwritten by retroarch save.')
         elif save_type == 'canoe':
             file_name = self.canoe_game_id_dict[game_id]
@@ -482,13 +491,14 @@ class RetroSync(object):
                 from_file = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram'
                 to_file = f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm'
                 self.convert_save_to_retroarch(from_file, to_file)
-                
-                print(f'Retroarch save for {file_name} has been overwritten by classic save.')
+                self.notify(title='RetroSync Overwrite', text=f'Retroarch save for {file_name} has been overwritten by Classic save.')
+                print(f'[{dt.datetime.now()}] Retroarch save for {file_name} has been overwritten by classic save.')
             elif target == 'snes':
                 from_file = f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm'
                 to_dir = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}'
                 self.convert_save_to_canoe(from_file, to_dir, game_id)
                 #shutil.copyfile(from_file, to_file)
+                self.notify(title='RetroSync Overwrite', text=f'Classic save for {file_name} has been overwritten by Retroarch save.')
                 print(f'[{dt.datetime.now()}] Classic save for {file_name} has been overwritten by retroarch save.')
     
     # save_type: 'canoe' or 'retroarch'
@@ -501,14 +511,14 @@ class RetroSync(object):
                     file_name = self.game_id_dict[game_id]
                     shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_TMP_DIR}/{file_name}.srm') # copy and convert
                     shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm') # copy and convert
-                    print(f'[{dt.datetime.now()}] Retroarch save for {file_name} has been overwritten by classic save.')
+                    print(f'[{dt.datetime.now()}] Retroarch save for {file_name} has been overwritten by Classic save.')
             elif target == 'snes':
                 # Copy saves to local directory (backup too)
                 for game_id in self.game_id_dict.keys():
                     file_name = self.game_id_dict[game_id]
                     shutil.copyfile(f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm', f'{LOCAL_CLASSIC_SAVES_TMP_DIR}/{game_id}/cartridge.sram')
                     shutil.copyfile(f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm', f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram')
-                    print(f'[{dt.datetime.now()}] Classic save for {file_name} has been overwritten by retroarch save.')
+                    print(f'[{dt.datetime.now()}] Classic save for {file_name} has been overwritten by Retroarch save.')
         elif save_type == 'canoe':
             if target == 'retroarch':
                 # Copy saves to local directory (backup too)
@@ -524,7 +534,7 @@ class RetroSync(object):
                     
                     #shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_TMP_DIR}/{file_name}.srm') # copy and convert
                     #shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm') # copy and convert
-                    print(f'[{dt.datetime.now()}] Retroarch save for {file_name} has been overwritten by classic save.')
+                    print(f'[{dt.datetime.now()}] Retroarch save for {file_name} has been overwritten by Classic save.')
             elif target == 'snes':
                 # Copy saves to local directory (backup too)
                 for game_id in self.canoe_game_id_dict.keys():
@@ -535,7 +545,7 @@ class RetroSync(object):
                     self.convert_save_to_canoe(from_file, f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}')
                     self.convert_save_to_canoe(from_file, f'{LOCAL_CLASSIC_SAVES_TMP_DIR}/{game_id}')
                     
-                    print(f'[{dt.datetime.now()}] Classic save for {file_name} has been overwritten by retroarch save.')
+                    print(f'[{dt.datetime.now()}] Classic save for {file_name} has been overwritten by Retroarch save.')
     
     def push_save(self, game_id, target, save_type='retroarch'):
         if save_type == 'retroarch':
@@ -613,11 +623,15 @@ class RetroSync(object):
     # Primary run
     def start(self):
         
+        RUNNING = True
         TIMEOUT = 3 # check every X seconds
         while True:
             
             print(f'[{dt.datetime.now()}] Searching for SNES Classic on local network.')
             if self.check_connection():
+                if not RUNNING:
+                    self.notify(title='RetroSync Online', text=f'SNES Classic is online!')
+                    RUNNING = True
                 print(f'[{dt.datetime.now()}] SNES Classic is online!')
                 
                 print(f'[{dt.datetime.now()}] Pulling Retroarch saves to temporary local directory...')
@@ -657,6 +671,9 @@ class RetroSync(object):
                 time.sleep(TIMEOUT)
             
             else:
+                if RUNNING:
+                    self.notify(title='RetroSync Offline', text=f'SNES Classic is currently unavailable.')
+                    RUNNING = False
                 print(f"[{dt.datetime.now()}] SNES Classic is currently unavailable.")
                 time.sleep(5)
             

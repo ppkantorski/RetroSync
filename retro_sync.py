@@ -1,8 +1,9 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
+import binascii
 import hashlib
 import difflib
 import filecmp
@@ -63,6 +64,13 @@ STOCK_GAME_ID_DICT = {
     "CLV-P-SAAXE": "Super Punch-Out!!",
     "CLV-P-SAAEE": "The Legend of Zelda: A Link to the Past",
     "CLV-P-SADJE": "Yoshi's Island"
+}
+
+STOCK_GAME_HEX_OFFSET = {
+    "CLV-P-SAAQE": ('1F00', '1FFE'), #Kirby Super Star
+    "CLV-P-SADKE": ('3912', '3A45'), #Star Fox 2
+    "CLV-P-SABQE": ('0', '1FFC'), #Super Mario RPG: Legend of the Seven Stars
+    "CLV-P-SADJE": ('7C00', '7E7B'), #Yoshi's Island
 }
 
 # Add custom download function to 'ftpretty'
@@ -415,12 +423,28 @@ class RetroSync(object):
                 print(f'{STOCK_GAME_ID_DICT.values()[i]} could not be found')
         #pprint(self.canoe_game_id_dict)
     
-    def convert_save_to_canoe(self, from_file, to_dir):
+    
+    def hex_to_index(self, hex_offset):
+        return int(hex_offset, 16)*2
+    
+    def convert_save_to_canoe(self, from_file, to_dir, game_id):
+        
+        if game_id in STOCK_GAME_HEX_OFFSET.keys():
+            use_hex_offset = True
+        else:
+            use_hex_offset = False
         
         with open(from_file, 'rb') as sramfile:
             sram_data = sramfile.read()
         
-        sram_hash = hashlib.sha1(sram_data)
+        if use_hex_offset:
+            start_hex, end_hex = STOCK_GAME_HEX_OFFSET[game_id]
+            start_index, end_index = int(self.hex_to_index(start_hex)), int(self.hex_to_index(end_hex))+2
+            sram_data_hex = sram_data.hex()
+            print(sram_data_hex[start_index:end_index])
+            sram_hash = hashlib.sha1(binascii.unhexlify(sram_data_hex[start_index:end_index]))
+        else:
+            sram_hash = hashlib.sha1(sram_data)
         
         with open(f'{to_dir}/cartridge.sram','wb') as output_sram:
             output_sram.write(sram_data)
@@ -462,7 +486,7 @@ class RetroSync(object):
             elif target == 'snes':
                 from_file = f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm'
                 to_dir = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}'
-                self.convert_save_to_canoe(from_file, to_dir)
+                self.convert_save_to_canoe(from_file, to_dir, game_id)
                 #shutil.copyfile(from_file, to_file)
                 print(f'[{dt.datetime.now()}] Classic save for {file_name} has been overwritten by retroarch save.')
     

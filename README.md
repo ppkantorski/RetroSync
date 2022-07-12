@@ -19,5 +19,6 @@ Sync Retroarch saves between SNES classic and computer.
 
 RetroSync iOS to iCloud
 https://www.icloud.com/shortcuts/7fbd2e2e02c74e9b9055fc2939e57a21
+
 RetroSync iCloud to iOS
 https://www.icloud.com/shortcuts/5a9e26091cc34e7293cc2927f3242302

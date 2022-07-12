@@ -452,7 +452,7 @@ class RetroSync(object):
             output_sram.write(sram_hash.digest())
         with open(f'{to_dir}/cartridge.sram.hash','wb') as output_hash:
             output_hash.write(sram_hash.digest())
-        print('[{dt.datetime.now()}] Cartridge.sram and cartridge.sram.hash are now ready.')
+        print(f'[{dt.datetime.now()}] Cartridge.sram and cartridge.sram.hash are now ready.')
     
     def convert_save_to_retroarch(self, from_file, to_file):
         

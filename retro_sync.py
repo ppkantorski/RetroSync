@@ -16,7 +16,7 @@ from pprint import pprint
 import socket
 from ftpretty import ftpretty
 from stat import S_ISDIR, S_ISREG
-
+import threading
 
 # Define script path
 script_path = os.path.dirname(os.path.abspath( __file__ ))
@@ -163,12 +163,25 @@ class RetroSync(object):
             print(f'[{dt.datetime.now()}] RetroArch Saves directory is empty.')
             print(f'[{dt.datetime.now()}] Saves will be populated from SNES.')
     
+    # For making object run in background
+    def background_thread(self, target, args_list):
+        args = ()
+        for i in range(len(args_list)):
+            args = args + (args_list[i],)
+        pr = threading.Thread(target=target, args=args)
+        pr.daemon = True
+        pr.start()
+        return pr
+    
     def notify(self, title, text):
         # Notifications are currenly only working on macOS
         if sys.platform == 'darwin':
-            os.system("""
-                      osascript -e 'display notification "{}" with title "{}"'
-                      """.format(text, title))
+            self.background_thread(self.notify_command, [title, text])
+    
+    def notify_command(self, title, text):
+        os.system("""
+                  osascript -e 'display notification "{}" with title "{}"'
+                  """.format(text, title))
     
     def check_connection(self):
         try:
@@ -623,7 +636,7 @@ class RetroSync(object):
     # Primary run
     def start(self):
         
-        RUNNING = True
+        RUNNING = False
         TIMEOUT = 3 # check every X seconds
         while True:
             

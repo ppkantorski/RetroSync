@@ -118,7 +118,7 @@ class RetroSync(object):
         self.user_name = 'root'
         self.password = ''
         self.snes_classic_ip = cfg.snes_classic_ip
-        self.snes_classic_port = cfg.snes_classic_port
+        self.snes_classic_port = 22
         
         # Initialize
         #elf.ftp = None

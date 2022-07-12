@@ -458,7 +458,7 @@ class RetroSync(object):
             sram_data = sramfile.read()
         
         if use_hex_offset:
-            print('[{dt.datetime.now()}] Using HEX offset for specified game {game_id}.')
+            print(f'[{dt.datetime.now()}] Using HEX offset for specified game {game_id}.')
             start_hex, end_hex = STOCK_GAME_HEX_OFFSET[game_id]
             start_index, end_index = int(self.hex_to_index(start_hex)), int(self.hex_to_index(end_hex))+2
             sram_data_hex = sram_data.hex()

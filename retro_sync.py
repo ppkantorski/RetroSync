@@ -89,6 +89,8 @@ STOCK_GAME_HEX_OFFSET = {
     "CLV-P-SADJE": ('7C00', '7E7B'), #Yoshi's Island
 }
 
+TIMEOUT = 3 # check every X seconds
+ICLOUD_TIMEOUT = 4 # Preserve iCloud folders every X hours
 
 # Add custom download function to 'ftpretty'
 class ftpretty_mod(ftpretty.ftpretty):
@@ -645,8 +647,6 @@ class RetroSync(object):
     def start(self):
         
         RUNNING = False
-        TIMEOUT = 3 # check every X seconds
-        ICLOUD_TIMEOUT = 4 # Preserve iCloud folders every X hours
         
         time_in = time.time()
         initial_time = time_in

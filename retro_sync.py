@@ -402,20 +402,44 @@ class RetroSync(object):
     
     def generate_stock_game_id_dict(self):
         game_ids = list(STOCK_GAME_ID_DICT.keys())
-        game_names = [x.lower() for x in STOCK_GAME_ID_DICT.values()]
-        file_names = [os.path.splitext(x)[0].lower() for x in os.listdir(RA_STOCK_GAMES_DIR)]
+        actual_game_names = list(STOCK_GAME_ID_DICT.values())
+        game_names = [x.lower() for x in actual_game_names]
+        actual_file_names = [os.path.splitext(x)[0] for x in os.listdir(RA_STOCK_GAMES_DIR) if not x.startswith('.')]
+        file_names = [self.remove_prefix(x.lower()) for x in actual_file_names]
         
-        actual_file_names = [os.path.splitext(x)[0] for x in os.listdir(RA_STOCK_GAMES_DIR)]
         
         for i in range(len(game_names)):
             game_name = game_names[i]
-            closest_match = difflib.get_close_matches(game_name, file_names, n=1, cutoff=0.4)[0]
+            pprint(file_names)
+            print('game_name:', game_name)
+            closest_match = difflib.get_close_matches(game_name, file_names, n=1, cutoff=0.5)
+            print(closest_match)
             if len(closest_match) > 0:
+                closest_match = closest_match[0]
                 index = file_names.index(closest_match)
-                self.canoe_game_id_dict[game_ids[i]] = actual_file_names[index].lstrip('.')
+                self.canoe_game_id_dict[game_ids[i]] = actual_file_names[index]
             else:
-                print(f'{STOCK_GAME_ID_DICT.values()[i]} could not be found')
+                print(f'{actual_game_names[i]} could not be found. {closest_match}')
         #pprint(self.canoe_game_id_dict)
+    
+    
+    def remove_prefix(self, string):
+        while True:
+            start_index = string.find('(')
+            end_index = string.find(')')
+            if start_index != -1 and end_index != -1:
+                string = string[0:start_index]+string[end_index+1:]
+            elif start_index == -1 or end_index == -1:
+                break
+        while True:
+            start_index = string.find('[')
+            end_index = string.find(']')
+            if start_index != -1 and end_index != -1:
+                string = string[0:start_index]+string[end_index+1:]
+            elif start_index == -1 or end_index == -1:
+                break
+        string = string.rstrip(' ')
+        return string
     
     
     def hex_to_index(self, hex_offset):
@@ -674,5 +698,5 @@ if __name__ == '__main__':
         try:
             retro_sync.start()
         except Exception as e:
-            print(f'[{now()}]', e)
+            print(f'[{now()}] ERROR:', e)
         time.sleep(5)

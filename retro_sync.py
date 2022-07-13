@@ -56,6 +56,8 @@ CLASSIC_GAMES_DIR = '/var/lib/hakchi/games/snes-usa/.storage'
 RA_SAVES_DIR = cfg.RA_SAVES_DIR
 RA_STOCK_GAMES_DIR = cfg.RA_STOCK_GAMES_DIR
 
+USING_ICLOUD = cfg.USING_ICLOUD
+
 STOCK_GAME_ID_DICT = {
     "CLV-P-SACCE": "CONTRA III THE ALIEN WARS",
     "CLV-P-SAALE": "Donkey Kong Country",
@@ -637,6 +639,10 @@ class RetroSync(object):
         
         RUNNING = False
         TIMEOUT = 3 # check every X seconds
+        ICLOUD_TIMEOUT = 60*60 # Preserve iCloud folders every 60 minutes
+        
+        time_in = time.time()
+        initial_time = time_in
         while True:
             
             print(f'[{now()}] Searching for SNES Classic on local network.')
@@ -688,6 +694,15 @@ class RetroSync(object):
                     RUNNING = False
                 print(f"[{now()}] SNES Classic is currently unavailable.")
                 time.sleep(5)
+            
+            
+            if USING_ICLOUD and sys.platform == 'darwin':
+                
+                time_out = time.time()-time_in
+                
+                if time_out > ICLOUD_TIMEOUT or time_in == initial_time:
+                    time_in = time.time()
+                    os.system('shortcuts run "Preserve iCloud Folders"')
             
 
 

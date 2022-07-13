@@ -138,6 +138,7 @@ class RetroSync(object):
         self.snes_classic_port = 22
         
         # Initialize
+        self.has_restarted = False
         #elf.ftp = None
         self.ftp = None
         #self.transport = None
@@ -153,6 +154,7 @@ class RetroSync(object):
         
         # Safety Presets
         self.disable_modifications = False
+       
         
         # Initialize Directories
         self.ra_saves_is_empty = False
@@ -644,7 +646,7 @@ class RetroSync(object):
         
         RUNNING = False
         TIMEOUT = 3 # check every X seconds
-        ICLOUD_TIMEOUT = 60 # Preserve iCloud folders every 60 minutes
+        ICLOUD_TIMEOUT = 4 # Preserve iCloud folders every X hours
         
         time_in = time.time()
         initial_time = time_in
@@ -652,12 +654,12 @@ class RetroSync(object):
             
             if USING_ICLOUD and sys.platform == 'darwin':
                 time_out = time.time()-time_in
-                if time_in == initial_time:
+                if time_in == initial_time and not self.has_restarted:
                     print(f'[{now()}] Preserving iCloud Folders... (will be ran in background next time)')
                     os.system('shortcuts run "Preserve iCloud Folders"')
-                    print(f'[{now()}] iCloud Folders are ready. Next check in {ICLOUD_TIMEOUT}mins.')
+                    print(f'[{now()}] iCloud Folders are ready. Next check in {ICLOUD_TIMEOUT}hrs.')
                     time_in = time.time()
-                elif time_out-time_in > ICLOUD_TIMEOUT*60:
+                elif time_out > ICLOUD_TIMEOUT*60*60:
                     self.background_thread(self.perserve_icloud_folders, [])
                     time_in = time.time()
             
@@ -721,4 +723,5 @@ if __name__ == '__main__':
             retro_sync.start()
         except Exception as e:
             print(f'[{now()}] ERROR:', e)
+        retro_sync.has_restarted = True
         time.sleep(5)

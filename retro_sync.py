@@ -633,17 +633,33 @@ class RetroSync(object):
                 self.convert_save(game_id, target, save_type)
                 self.push_save(game_id, target, save_type)
     
+    def perserve_icloud_folders(self):
+        if sys.platform == 'darwin':
+            print(f'[{now()}] Preserving iCloud Folders...')
+            os.system('shortcuts run "Preserve iCloud Folders"')
+            print(f'[{now()}] iCloud Folders are ready. Next check in {ICLOUD_TIMEOUT}mins.')
     
     # Primary run
     def start(self):
         
         RUNNING = False
         TIMEOUT = 3 # check every X seconds
-        ICLOUD_TIMEOUT = 60*60 # Preserve iCloud folders every 60 minutes
+        ICLOUD_TIMEOUT = 60 # Preserve iCloud folders every 60 minutes
         
         time_in = time.time()
         initial_time = time_in
         while True:
+            
+            if USING_ICLOUD and sys.platform == 'darwin':
+                time_out = time.time()-time_in
+                if time_in == initial_time:
+                    print(f'[{now()}] Preserving iCloud Folders... (will be ran in background on next check)')
+                    os.system('shortcuts run "Preserve iCloud Folders"')
+                    print(f'[{now()}] iCloud Folders are ready. Next check in {ICLOUD_TIMEOUT}mins.')
+                    time_in = time.time()
+                elif time_out > ICLOUD_TIMEOUT*60:
+                    self.background_thread(self.perserve_icloud_folders, [])
+                    time_in = time.time()
             
             print(f'[{now()}] Searching for SNES Classic on local network.')
             if self.check_connection():
@@ -694,15 +710,6 @@ class RetroSync(object):
                     RUNNING = False
                 print(f"[{now()}] SNES Classic is currently unavailable.")
                 time.sleep(5)
-            
-            
-            if USING_ICLOUD and sys.platform == 'darwin':
-                
-                time_out = time.time()-time_in
-                
-                if time_out > ICLOUD_TIMEOUT or time_in == initial_time:
-                    time_in = time.time()
-                    os.system('shortcuts run "Preserve iCloud Folders"')
             
 
 

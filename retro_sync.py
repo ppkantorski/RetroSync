@@ -410,10 +410,10 @@ class RetroSync(object):
         
         for i in range(len(game_names)):
             game_name = game_names[i]
-            pprint(file_names)
-            print('game_name:', game_name)
+            #pprint(file_names)
+            #print('game_name:', game_name)
             closest_match = difflib.get_close_matches(game_name, file_names, n=1, cutoff=0.5)
-            print(closest_match)
+            #print(closest_match)
             if len(closest_match) > 0:
                 closest_match = closest_match[0]
                 index = file_names.index(closest_match)

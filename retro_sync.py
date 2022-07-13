@@ -412,7 +412,7 @@ class RetroSync(object):
             closest_match = difflib.get_close_matches(game_name, file_names, n=1, cutoff=0.4)[0]
             if len(closest_match) > 0:
                 index = file_names.index(closest_match)
-                self.canoe_game_id_dict[game_ids[i]] = actual_file_names[index]
+                self.canoe_game_id_dict[game_ids[i]] = actual_file_names[index].lstrip('.')
             else:
                 print(f'{STOCK_GAME_ID_DICT.values()[i]} could not be found')
         #pprint(self.canoe_game_id_dict)

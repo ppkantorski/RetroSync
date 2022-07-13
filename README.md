@@ -26,7 +26,7 @@ RetroSync iCloud to iOS
 
 https://www.icloud.com/shortcuts/5a9e26091cc34e7293cc2927f3242302
 
-- (macOS Only) To prevent iCloud from constantly offloading a particular directory **Preserve iCloud Folders**, in this case the RetroArch directory, locally on your Mac, you will want to install this, then set `USING_ICLOUD = True`.
+- (macOS Only) To prevent iCloud from constantly offloading a particular directory, in this case the RetroArch directory, locally on your Mac, you will want to install **Preserve iCloud Folders**, then set `USING_ICLOUD = True`.
 
 Preserve iCloud Folders (macOS Shortcuts script)
 

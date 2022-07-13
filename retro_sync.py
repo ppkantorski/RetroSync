@@ -657,7 +657,7 @@ class RetroSync(object):
                     os.system('shortcuts run "Preserve iCloud Folders"')
                     print(f'[{now()}] iCloud Folders are ready. Next check in {ICLOUD_TIMEOUT}mins.')
                     time_in = time.time()
-                elif time_out > ICLOUD_TIMEOUT*60:
+                elif time_out-time_in > ICLOUD_TIMEOUT*60:
                     self.background_thread(self.perserve_icloud_folders, [])
                     time_in = time.time()
             

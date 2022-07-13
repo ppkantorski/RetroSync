@@ -653,7 +653,7 @@ class RetroSync(object):
             if USING_ICLOUD and sys.platform == 'darwin':
                 time_out = time.time()-time_in
                 if time_in == initial_time:
-                    print(f'[{now()}] Preserving iCloud Folders... (will be ran in background on next check)')
+                    print(f'[{now()}] Preserving iCloud Folders... (will be ran in background next time)')
                     os.system('shortcuts run "Preserve iCloud Folders"')
                     print(f'[{now()}] iCloud Folders are ready. Next check in {ICLOUD_TIMEOUT}mins.')
                     time_in = time.time()

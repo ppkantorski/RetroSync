@@ -17,7 +17,7 @@ import socket
 from stat import S_ISDIR, S_ISREG
 import threading
 
-# Install ftpretty if not already installed
+# Install module if not already installed
 import importlib
 def install_and_import(package):
     try:

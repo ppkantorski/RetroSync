@@ -27,8 +27,8 @@ def install_and_import(package):
     finally:
         globals()[package] = importlib.import_module(package)
 
-package = 'ftpretty'
-install_and_import(package)
+# Import / Install ftpretty
+install_and_import('ftpretty')
 
 # Define script path
 script_path = os.path.dirname(os.path.abspath( __file__ ))

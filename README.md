@@ -32,4 +32,4 @@ Preserve iCloud Folders (macOS Shortcuts script)
 
 https://www.icloud.com/shortcuts/ad522b16a20a474c87f7a768fb278f7d
 
-**sidenote:** If any of the folders on these Shortcuts are broken for some reason, just edit the shortcut and point them to the correct directories.
+**sidenote:** If any of the folders on these Shortcuts are broken for some reason, just edit the Shortcut and point them to the correct directories.

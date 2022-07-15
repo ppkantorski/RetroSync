@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -32,7 +32,9 @@ install_and_import('ftpretty')
 
 # Define script path
 script_path = os.path.dirname(os.path.abspath( __file__ ))
-os.chdir(script_path); sys.path.append(script_path)
+sys.path.append(script_path)
+sys.dont_write_bytecode = True
+
 
 import config as cfg
 
@@ -57,6 +59,9 @@ RA_SAVES_DIR = cfg.RA_SAVES_DIR
 RA_STOCK_GAMES_DIR = cfg.RA_STOCK_GAMES_DIR
 
 USING_ICLOUD = cfg.USING_ICLOUD
+TIMEOUT = 3 # check every X seconds
+ICLOUD_TIMEOUT = 4 # Preserve iCloud folders every X hours
+
 
 STOCK_GAME_ID_DICT = {
     "CLV-P-SACCE": "CONTRA III THE ALIEN WARS",
@@ -89,8 +94,7 @@ STOCK_GAME_HEX_OFFSET = {
     "CLV-P-SADJE": ('7C00', '7E7B'), #Yoshi's Island
 }
 
-TIMEOUT = 3 # check every X seconds
-ICLOUD_TIMEOUT = 4 # Preserve iCloud folders every X hours
+
 
 # Add custom download function to 'ftpretty'
 class ftpretty_mod(ftpretty.ftpretty):
@@ -140,6 +144,7 @@ class RetroSync(object):
         self.snes_classic_port = 22
         
         # Initialize
+        self.terminate = False
         self.has_restarted = False
         #elf.ftp = None
         self.ftp = None
@@ -194,15 +199,23 @@ class RetroSync(object):
         pr.start()
         return pr
     
-    def notify(self, title, text):
+    def notify(self, title, message):
         # Notifications are currenly only working on macOS
         if sys.platform == 'darwin':
-            self.background_thread(self.notify_command, [title, text])
+            self.background_thread(self.notify_command, [title, message])
     
-    def notify_command(self, title, text):
+    def notify_command(self, title, message):
         os.system("""
                   osascript -e 'display notification "{}" with title "{}"'
-                  """.format(text, title))
+                  """.format(message, title))
+        
+        #app_name = "RetroSync"
+        #query = f'tell app "{app_name}" to display notification "{message}" with title "{title}"'
+        #command = f"osascript -e '{query}'"
+        ##print(self.decrypt(self.password))
+        ##print(password)
+        #os.popen("sudo -S %s"%(command), 'w').write(self.obstruct.decrypt(self.password))
+        
     
     def check_connection(self):
         try:
@@ -496,10 +509,10 @@ class RetroSync(object):
             if target == 'retroarch':
                 shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm') # copy and convert
                 print(f'[{now()}] Retroarch save for {file_name} has been overwritten by classic save.')
-                self.notify(title='RetroSync Overwrite', text=f'Retroarch save for {file_name} has been overwritten by Classic save.')
+                self.notify(title='RetroSync Overwrite', message=f'Retroarch save for {file_name} has been overwritten by Classic save.')
             elif target == 'snes':
                 shutil.copyfile(f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm', f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram')
-                self.notify(title='RetroSync Overwrite', text=f'Classic save for {file_name} has been overwritten by Retroarch save.')
+                self.notify(title='RetroSync Overwrite', message=f'Classic save for {file_name} has been overwritten by Retroarch save.')
                 print(f'[{now()}] Classic save for {file_name} has been overwritten by retroarch save.')
         elif save_type == 'canoe':
             file_name = self.canoe_game_id_dict[game_id]
@@ -508,14 +521,14 @@ class RetroSync(object):
                 from_file = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram'
                 to_file = f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm'
                 self.convert_save_to_retroarch(from_file, to_file)
-                self.notify(title='RetroSync Overwrite', text=f'Retroarch save for {file_name} has been overwritten by Classic save.')
+                self.notify(title='RetroSync Overwrite', message=f'Retroarch save for {file_name} has been overwritten by Classic save.')
                 print(f'[{now()}] Retroarch save for {file_name} has been overwritten by classic save.')
             elif target == 'snes':
                 from_file = f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm'
                 to_dir = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}'
                 self.convert_save_to_canoe(from_file, to_dir, game_id)
                 #shutil.copyfile(from_file, to_file)
-                self.notify(title='RetroSync Overwrite', text=f'Classic save for {file_name} has been overwritten by Retroarch save.')
+                self.notify(title='RetroSync Overwrite', message=f'Classic save for {file_name} has been overwritten by Retroarch save.')
                 print(f'[{now()}] Classic save for {file_name} has been overwritten by retroarch save.')
     
     # save_type: 'canoe' or 'retroarch'
@@ -645,12 +658,18 @@ class RetroSync(object):
     
     # Primary run
     def start(self):
+        self.notify(title='RetroSync Startup', message=f'Now starting Data Sync...')
         
         RUNNING = False
         
         time_in = time.time()
         initial_time = time_in
         while True:
+            
+            if self.terminate:
+                self.notify(title='RetroSync Offline', message=f'Data Sync has been haulted.')
+                print(f"[{now()}] RetroSync has been shutdown.")
+                break
             
             if USING_ICLOUD and sys.platform == 'darwin':
                 time_out = time.time()-time_in
@@ -666,7 +685,7 @@ class RetroSync(object):
             print(f'[{now()}] Searching for SNES Classic on local network.')
             if self.check_connection():
                 if not RUNNING:
-                    self.notify(title='RetroSync Online', text=f'SNES Classic is online!')
+                    self.notify(title='RetroSync Online', message=f'SNES Classic is online!')
                     RUNNING = True
                 print(f'[{now()}] SNES Classic is online!')
                 
@@ -708,7 +727,7 @@ class RetroSync(object):
             
             else:
                 if RUNNING:
-                    self.notify(title='RetroSync Offline', text=f'SNES Classic is currently unavailable.')
+                    self.notify(title='RetroSync Offline', message=f'SNES Classic is currently unavailable.')
                     RUNNING = False
                 print(f"[{now()}] SNES Classic is currently unavailable.")
                 time.sleep(5)
@@ -718,10 +737,15 @@ class RetroSync(object):
 
 if __name__ == '__main__':
     retro_sync = RetroSync()
+    
     while True:
         try:
             retro_sync.start()
         except Exception as e:
             print(f'[{now()}] ERROR:', e)
         retro_sync.has_restarted = True
+        
+        if retro_sync.terminate:
+            break
+        
         time.sleep(5)

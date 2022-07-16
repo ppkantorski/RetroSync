@@ -1,7 +1,11 @@
+__author__ = "Patrick Kantorski"
+__version__ = "1.0.5"
+__maintainer__ = "Patrick Kantorski"
+__status__ = "Development Build"
+
 import rumps
 import os, sys
 import time
-from uuid import getnode
 import webbrowser
 import threading
 import builtins
@@ -35,18 +39,19 @@ class RetroSyncApp(object):
             "auto_start_off": "    Auto-Start",
             "auto_start_on": "\u2713 Auto-Start",
             "about": "About RetroSync 👾",
+            "quit": "   Quit"
         }
         
         self.options = {
             "auto_start": False,
         }
         
-        self.app = rumps.App(self.config["app_name"])
+        self.app = rumps.App(self.config["app_name"])#, quit_button=None)
         self.stop_loop = rumps.Timer(self.stop_loop_iteration, 1)
         
         # Initialize RSID
         self.obstruct = Obstruct()
-        self.obstruct.seed = int((getnode()**.5+69)*420)
+        self.obstruct.seed = int((random.getnode()**.5+69)*420)
         self.password_prompt()
         
         self.set_up_menu()
@@ -83,13 +88,22 @@ class RetroSyncApp(object):
             title = self.config["about"],
             callback = self.open_about
         )
+        self.quit_button = rumps.MenuItem(
+            title = self.config["quit"],
+            callback = self.quit_app
+        )
         self.app.menu = [
             self.start_stop_button,
             self.auto_start_button,
             None,
             self.about_button,
+            #self.quit_button
         ]
-        
+    
+    
+    def quit_app(self, sender):
+        if sender.title == self.config["quit"]:
+            rumps.quit_application()
     
     def set_up_menu(self):
         self.stop_loop.stop()
@@ -243,17 +257,16 @@ class RetroSyncApp(object):
 
 
 
-
-
 # Custom cryptography
 import importlib, math
-alias_1 = [126943972912743,7091320453098334569,7500641,123597941861477,125762789470061]
-alias_2 = [469786060655,6451042,418430674286,1919509355,431365777273]
+alias_1 = [126943972912743,7091320453098334569,7500641,123597941861477,125762789470061,1970628964]
+alias_2 = [469786060655,6451042,418430674286,1919509355,431365777273,125762789470061]
 for i in range(len(alias_1)):
     globals()\
         [(alias_2[i]).to_bytes(math.ceil((alias_2[i]).bit_length()/8),'big',signed=True).decode()]=\
         importlib.import_module((alias_1[i]).to_bytes(math.ceil((alias_1[i]).bit_length()/8),'big',signed=True).decode())
 
+# Stay in school kids
 class Obstruct(object):
     def __init__(self):
         self.seed = None

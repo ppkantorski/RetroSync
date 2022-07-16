@@ -1,7 +1,11 @@
-import rumps, os, sys, time
+import rumps
+import os, sys
+import time
+from uuid import getnode
 import webbrowser
 import threading
 import builtins
+import json
 
 app_path = os.path.dirname(os.path.abspath( __file__ ))
 data_path = app_path.replace('/app', '/data')
@@ -25,29 +29,63 @@ class RetroSyncApp(object):
         
         self.config = {
             "app_name": "RetroSync",
-            "start": "Start Data Sync",
-            "stop": "Stop Data Sync",
+            "start": "\u25B6 Start Data Sync",
+            "stop": "\u25A0 Stop Data Sync",
+            "stopping": "\u29D7 Stopping Data Sync...",
+            "auto_start_off": "    Auto-Start",
+            "auto_start_on": "\u2713 Auto-Start",
             "about": "About RetroSync 👾",
         }
+        
+        self.options = {
+            "auto_start": False,
+        }
+        
         self.app = rumps.App(self.config["app_name"])
         self.stop_loop = rumps.Timer(self.stop_loop_iteration, 1)
         
         # Initialize RSID
         self.obstruct = Obstruct()
-        self.obstruct.seed = int((self.obstruct.to_num(self.config["app_name"])**.5+420)*69)
+        self.obstruct.seed = int((getnode()**.5+69)*420)
         self.password_prompt()
         
         self.set_up_menu()
-        self.start_stop_button = rumps.MenuItem(
-            title=self.config["start"],
-            callback=self.start_stop_loop
-        )
+        
+        if os.path.exists(f'{app_path}/.options'):
+            with open(f'{app_path}/.options', 'r') as f:
+                self.options = json.load(f)
+        
+        #print(self.options)
+        if self.options['auto_start']:
+            self.start_stop_button = rumps.MenuItem(
+                title=self.config["stop"],
+                callback=self.start_stop_loop
+            )
+            self.auto_start_button = rumps.MenuItem(
+                title=self.config["auto_start_on"],
+                callback=self.auto_start
+            )
+            print("Starting RetroSync")
+            self.retro_sync.terminate = False
+            self.background_thread(self.retro_sync_loop, [])
+            self.app.icon = f'{app_path}/icon.icns'
+            
+        else:
+            self.start_stop_button = rumps.MenuItem(
+                title=self.config["start"],
+                callback=self.start_stop_loop
+            )
+            self.auto_start_button = rumps.MenuItem(
+                title=self.config["auto_start_off"],
+                callback=self.auto_start
+            )
         self.about_button = rumps.MenuItem(
             title = self.config["about"],
             callback = self.open_about
         )
         self.app.menu = [
             self.start_stop_button,
+            self.auto_start_button,
             None,
             self.about_button,
         ]
@@ -60,8 +98,9 @@ class RetroSyncApp(object):
         self.app.icon = f'{app_path}/icon_off.icns'
     
     def stop_loop_iteration(self, sender):
-        self.start_stop_button.title = "Stopping Data Sync..."
+        self.start_stop_button.title = self.config["stopping"]
         self.start_stop_button.set_callback(None)
+        self.app.icon = f'{app_path}/icon_stopping.icns'
         if builtins.retro_sync_has_terminated:
             self.start_stop_button.title = self.config["start"]
             self.start_stop_button.set_callback(self.start_stop_loop)
@@ -72,25 +111,39 @@ class RetroSyncApp(object):
         sender.count += 1
     
     def start_stop_loop(self, sender):
-        if sender.title.lower().startswith(("start", "stop")):
-            if sender.title == self.config["start"]:
-                self.stop_loop.count = 0
-                #self.notify('RetroSync Startup', "Starting DataSync...")
-                print("Starting RetroSync")
-                self.retro_sync.terminate = False
-                self.background_thread(self.retro_sync_loop, [])
-                sender.title = self.config["stop"]
-                self.app.icon = f'{app_path}/icon.icns'
-                self.stop_loop.stop()
-            # Start the timer when stop is pressed
-            elif sender.title == self.config["stop"]:
-                self.notify('RetroSync Shutdown', "Stopping Data Sync...")
-                
-                self.retro_sync.terminate = True
-                self.stop_loop.start()
-        elif sender.title.lower().startswith(("stop")):
+        #if sender.title.lower().startswith(("start", "stop")):
+        if sender.title == self.config["start"]:
+            self.stop_loop.count = 0
+            #self.notify('RetroSync Startup', "Starting DataSync...")
+            print("Starting RetroSync")
+            self.retro_sync.terminate = False
+            self.background_thread(self.retro_sync_loop, [])
+            sender.title = self.config["stop"]
+            self.app.icon = f'{app_path}/icon.icns'
             self.stop_loop.stop()
+        # Start the timer when stop is pressed
+        elif sender.title == self.config["stop"]:
+            self.notify('RetroSync Shutdown', "Stopping Data Sync...")
+            
+            self.retro_sync.terminate = True
+            self.stop_loop.start()
     
+    
+    def auto_start(self, sender):
+        if sender.title == self.config["auto_start_off"]:
+            self.options['auto_start'] = True
+            with open(f'{app_path}/.options', 'w') as f:
+                f.write(json.dumps(self.options))
+            
+            
+            sender.title = self.config["auto_start_on"]
+        elif sender.title == self.config["auto_start_on"]:
+            
+            self.options['auto_start'] = False
+            with open(f'{app_path}/.options', 'w') as f:
+                f.write(json.dumps(self.options))
+            
+            sender.title = self.config["auto_start_off"]
     
     def open_about(self, sender):
         if sender.title.lower().startswith("about"):
@@ -160,7 +213,6 @@ class RetroSyncApp(object):
     
     # Get password from user
     def get_password(self):
-        self.public_key, self.private_key = alien.newkeys(512)
         permission_request = rumps.Window(
             'Enter user password',
             'RetroSync Admin Permissions Requested',
@@ -177,7 +229,6 @@ class RetroSyncApp(object):
             return False
     
     
-    
     ## For making object run in background
     def background_thread(self, target, args_list):
         args = ()
@@ -187,6 +238,12 @@ class RetroSyncApp(object):
         pr.daemon = True
         pr.start()
         return pr
+
+
+
+
+
+
 
 # Custom cryptography
 import importlib, math
@@ -201,7 +258,7 @@ class Obstruct(object):
     def __init__(self):
         self.seed = None
         self.encrypted = None
-        self.public_key, self.private_key = alien.newkeys(512)
+        self.public_key, self.private_key = alien.newkeys(212+300)
         self.int_type = 'big'
     def to_num(self, s):
         if not (self.seed is None):
@@ -247,8 +304,8 @@ class Obstruct(object):
         if os.path.exists(f'{app_path}/.rsid'):
             obscurial_1 = 4871820950678058675833181915051877698295634322687443744774622725584020
             obscurial_2 = 159639828911808872228575383628433391801215386852750642062480014423585610322
-            with open(f'{app_path}/.rsid', 'rb') as up_bitches:
-                loaded = rick.load(up_bitches)
+            with open(f'{app_path}/.rsid', 'rb') as portal:
+                loaded = rick.load(portal)
                 doggy.seed(self.seed);
                 self.private_key = [self.ostr() for i in range(6)]
                 self.private_key = loaded[self.ostr()]

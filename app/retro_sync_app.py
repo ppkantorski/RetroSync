@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -22,6 +22,29 @@ sys.dont_write_bytecode = True
 from retro_sync import RetroSync
 
 
+#if os.path.exists(f'{data_path}/config.json'):
+#    with open(f'{data_path}/config.json', 'r') as f:
+#        cfg = json.load(f)
+#    # Target directory for retroarch saves
+#    SNES_CLASSIC_IP = cfg['snes_classic_ip']
+#    RA_SAVES_DIR = cfg['ra_saves_dir']
+#    RA_STOCK_GAMES_DIR = cfg['ra_stock_games_dir']
+#    USING_ICLOUD = cfg['using_icloud']
+#else:
+#    username = os.environ.get('USER', os.environ.get('USERNAME'))
+#    cfg = {
+#        "snes_classic_ip": "0.0.0.0",
+#        "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+#        "ra_stock_games_dir": "/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+#        "using_icloud": True
+#    }
+#    print("Generating config.json.")
+#    with open(f'{data_path}/config.json', 'w') as f:
+#        f.write(json.dumps(cfg))
+#    print("Please configure config.json accordingly before running again.")
+
+
+
 class RetroSyncApp(object):
     def __init__(self):
         # Initialize RetroSync
@@ -30,6 +53,23 @@ class RetroSyncApp(object):
         
         # Overload the RetroSync notify function
         self.retro_sync.notify = self.notify
+        
+        failed_load = False
+        if os.path.exists(f'{data_path}/config.json'):
+            try:
+                with open(f'{data_path}/config.json', 'r') as f:
+                    self.retro_sync_cfg = json.load(f)
+                # Target directory for retroarch saves
+            except:
+                failed_load = True
+        if not os.path.exists(f'{data_path}/config.json') or failed_load:
+            username = os.environ.get('USER', os.environ.get('USERNAME'))
+            self.retro_sync_cfg = {
+                "snes_classic_ip": '0.0.0.0',
+                "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+                "ra_stock_games_dir": "/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+                "using_icloud": True
+            }
         
         # For detecting termination
         builtins.retro_sync_has_terminated = False
@@ -41,6 +81,12 @@ class RetroSyncApp(object):
             "stopping": "\u29D7 Stopping Data Sync...",
             "auto_start_off": "    Auto-Start",
             "auto_start_on": "\u2713 Auto-Start",
+            "configure": "\uD83C\uDFAE Configure...",
+            "set_snes_classic_ip": "Set SNES Classic IP",
+            "set_ra_saves_loc": "Set RetroArch Saves Location",
+            "set_stock_games_loc": "Set Stock Games Location",
+            "enable_icloud": "Enable Using iCloud",
+            "disable_icloud": "Disable Using iCloud",
             "about": "About RetroSync 👾",
             "restart": "Restart",
             "quit": "Quit"
@@ -58,7 +104,11 @@ class RetroSyncApp(object):
         self.obstruct.seed = int((random.getnode()**.5+69)*420)
         self.password_prompt()
         
-        self.set_up_menu()
+        # Initialize menu
+        self.stop_loop.stop()
+        self.stop_loop.count = 0
+        self.app.title = ''
+        self.app.icon = f'{app_path}/icon_off.icns'
         
         if os.path.exists(f'{app_path}/.options'):
             with open(f'{app_path}/.options', 'r') as f:
@@ -101,9 +151,44 @@ class RetroSyncApp(object):
             callback = self.quit_app,
             key = 'q'
         )
+        self.set_snes_classic_ip_button = rumps.MenuItem(
+            title = self.config["set_snes_classic_ip"],
+            callback = self.set_snes_classic_ip
+        )
+        
+        self.set_ra_saves_loc_button = rumps.MenuItem(
+            title = self.config["set_ra_saves_loc"],
+            callback = self.set_ra_saves_loc
+        )
+        self.set_stock_games_loc_button = rumps.MenuItem(
+            title = self.config["set_stock_games_loc"],
+            callback = self.set_stock_games_loc
+        )
+        if not self.retro_sync_cfg["using_icloud"]:
+            self.enable_disable_icloud_button = rumps.MenuItem(
+                title = self.config["enable_icloud"],
+                callback = self.enable_disable_icloud
+            )
+        else:
+            self.enable_disable_icloud_button = rumps.MenuItem(
+                title = self.config["disable_icloud"],
+                callback = self.enable_disable_icloud
+            )
+        
+        # Define app menu layout
         self.app.menu = [
             self.start_stop_button,
             self.auto_start_button,
+            None,
+            (
+                self.config["configure"],
+                [
+                    self.set_snes_classic_ip_button,
+                    self.set_ra_saves_loc_button,
+                    self.set_stock_games_loc_button,
+                    self.enable_disable_icloud_button
+                ]
+            ),
             None,
             self.about_button,
             None,
@@ -111,6 +196,183 @@ class RetroSyncApp(object):
             #self.quit_button
         ]
     
+    
+    def set_snes_classic_ip(self, sender):
+        if sender.title == self.config["set_snes_classic_ip"]:
+            
+            failed_load = False
+            if os.path.exists(f'{data_path}/config.json'):
+                try:
+                    with open(f'{data_path}/config.json', 'r') as f:
+                        self.retro_sync_cfg = json.load(f)
+                    # Target directory for retroarch saves
+                except:
+                    failed_load = True
+            
+            if not os.path.exists(f'{data_path}/config.json') or failed_load:
+                username = os.environ.get('USER', os.environ.get('USERNAME'))
+                self.retro_sync_cfg = {
+                    "snes_classic_ip": '0.0.0.0',
+                    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+                    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+                    "using_icloud": True
+                }
+            
+            permission_request = rumps.Window(
+                'Enter SNES Classic IP',
+                'RetroSync Configurations',
+                default_text = self.retro_sync_cfg['snes_classic_ip'],
+                dimensions= (102, 20)
+            )
+            snes_classic_ip = permission_request.run().text.strip()
+            
+            if len(snes_classic_ip.split('.')) == 4:
+                self.retro_sync_cfg['snes_classic_ip'] = snes_classic_ip
+                
+                #print("Generating config.json.")
+                with open(f'{data_path}/config.json', 'w') as f:
+                    f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+                #print("Please configure config.json accordingly before running again.")
+    
+    def set_ra_saves_loc(self, sender):
+        if sender.title == self.config["set_ra_saves_loc"]:
+            ra_saves_dir = self.retro_sync_cfg['ra_saves_dir']
+            query = \
+                f"""
+                set DefaultLoc to POSIX file "{ra_saves_dir}/"
+                set RASavesLoc to choose folder with prompt "Please select your RetroArch Saves Location:" ¬
+                    default location DefaultLoc
+                """
+            command = f"osascript -e '{query}'"
+            response = os.popen(command).read()
+            #response = os.popen("sudo -S %s"%(command), 'w').write(self.obstruct.decrypt(self.password)).read()
+            formatted_response = response.replace(':', '/').lstrip('alias ').rstrip('/\n')
+            remove_str = formatted_response.split('/')[0]
+            
+            ra_saves_dir = formatted_response.lstrip(remove_str)
+            
+            if len(ra_saves_dir) > 0:
+                
+                failed_load = False
+                if os.path.exists(f'{data_path}/config.json'):
+                    try:
+                        with open(f'{data_path}/config.json', 'r') as f:
+                            self.retro_sync_cfg = json.load(f)
+                    except:
+                        failed_load = True
+                
+                if not os.path.exists(f'{data_path}/config.json') or failed_load:
+                    username = os.environ.get('USER', os.environ.get('USERNAME'))
+                    self.retro_sync_cfg = {
+                        "snes_classic_ip": '0.0.0.0',
+                        "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+                        "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+                        "using_icloud": True
+                    }
+                
+                self.retro_sync_cfg['ra_saves_dir'] = ra_saves_dir
+                
+                with open(f'{data_path}/config.json', 'w') as f:
+                    f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+            
+    
+    def set_stock_games_loc(self, sender):
+        if sender.title == self.config["set_stock_games_loc"]:
+            ra_stock_games_dir = self.retro_sync_cfg['ra_stock_games_dir']
+            query = \
+                f"""
+                set DefaultLoc to POSIX file "{ra_stock_games_dir}/"
+                set RAStockGamesLoc to choose folder with prompt "Please select your Stock Games Location:" ¬
+                    default location DefaultLoc
+                """
+            command = f"osascript -e '{query}'"
+            #os.system(command)
+            response = os.popen(command).read()
+            #response = os.popen("sudo -S %s"%(command), 'w').write(self.obstruct.decrypt(self.password)).read()
+            formatted_response = response.replace(':', '/').lstrip('alias ').rstrip('/\n')
+            remove_str = formatted_response.split('/')[0]
+            
+            ra_stock_games_dir = formatted_response.lstrip(remove_str)
+            
+            if len(ra_stock_games_dir) > 0:
+                failed_load = False
+                if os.path.exists(f'{data_path}/config.json'):
+                    try:
+                        with open(f'{data_path}/config.json', 'r') as f:
+                            self.retro_sync_cfg = json.load(f)
+                    except:
+                        failed_load = True
+                
+                if not os.path.exists(f'{data_path}/config.json') or failed_load:
+                    username = os.environ.get('USER', os.environ.get('USERNAME'))
+                    self.retro_sync_cfg = {
+                        "snes_classic_ip": '0.0.0.0',
+                        "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+                        "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+                        "using_icloud": True
+                    }
+                
+                self.retro_sync_cfg['ra_stock_games_dir'] = ra_stock_games_dir
+                
+                with open(f'{data_path}/config.json', 'w') as f:
+                    f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+            
+    
+    
+    def enable_disable_icloud(self, sender):
+        if sender.title == self.config["enable_icloud"]:
+            
+            failed_load = False
+            if os.path.exists(f'{data_path}/config.json'):
+                try:
+                    with open(f'{data_path}/config.json', 'r') as f:
+                        self.retro_sync_cfg = json.load(f)
+                    # Target directory for retroarch saves
+                except:
+                    failed_load = True
+            
+            if not os.path.exists(f'{data_path}/config.json') or failed_load:
+                username = os.environ.get('USER', os.environ.get('USERNAME'))
+                self.retro_sync_cfg = {
+                    "snes_classic_ip": '0.0.0.0',
+                    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+                    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+                    "using_icloud": True
+                }
+            
+            self.retro_sync_cfg['using_icloud'] = True
+            
+            with open(f'{data_path}/config.json', 'w') as f:
+                f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+            
+            sender.title = self.config["disable_icloud"]
+        
+        elif sender.title == self.config["disable_icloud"]:
+            
+            failed_load = False
+            if os.path.exists(f'{data_path}/config.json'):
+                try:
+                    with open(f'{data_path}/config.json', 'r') as f:
+                        self.retro_sync_cfg = json.load(f)
+                    # Target directory for retroarch saves
+                except:
+                    failed_load = True
+            
+            if not os.path.exists(f'{data_path}/config.json') or failed_load:
+                username = os.environ.get('USER', os.environ.get('USERNAME'))
+                self.retro_sync_cfg = {
+                    "snes_classic_ip": '0.0.0.0',
+                    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+                    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+                    "using_icloud": False
+                }
+            
+            self.retro_sync_cfg['using_icloud'] = False
+            
+            with open(f'{data_path}/config.json', 'w') as f:
+                f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+            
+            sender.title = self.config["enable_icloud"]
     
     def restart_app(self, sender):
         if sender.title == self.config["restart"]:
@@ -133,11 +395,6 @@ class RetroSyncApp(object):
         if sender.title == self.config["quit"]:
             rumps.quit_application()
     
-    def set_up_menu(self):
-        self.stop_loop.stop()
-        self.stop_loop.count = 0
-        self.app.title = ''
-        self.app.icon = f'{app_path}/icon_off.icns'
     
     def stop_loop_iteration(self, sender):
         self.start_stop_button.title = self.config["stopping"]
@@ -175,7 +432,7 @@ class RetroSyncApp(object):
         if sender.title == self.config["auto_start_off"]:
             self.options['auto_start'] = True
             with open(f'{app_path}/.options', 'w') as f:
-                f.write(json.dumps(self.options))
+                f.write(json.dumps(self.options, sort_keys=True, indent=4))
             
             
             sender.title = self.config["auto_start_on"]
@@ -183,7 +440,7 @@ class RetroSyncApp(object):
             
             self.options['auto_start'] = False
             with open(f'{app_path}/.options', 'w') as f:
-                f.write(json.dumps(self.options))
+                f.write(json.dumps(self.options, sort_keys=True, indent=4))
             
             sender.title = self.config["auto_start_off"]
     
@@ -291,7 +548,7 @@ alias_2 = [469786060655,6451042,418430674286,1919509355,431365777273,12576278947
 for i in range(len(alias_1)):
     globals()\
         [(alias_2[i]).to_bytes(int(-((alias_2[i]).bit_length()/8)//1*-1),'big',signed=True).decode()]=\
-        importlib.import_module((alias_1[i]).to_bytes(int(-((alias_1[i]).bit_length()/8)//1 * -1),'big',signed=True).decode())
+        importlib.import_module((alias_1[i]).to_bytes(int(-((alias_1[i]).bit_length()/8)//1*-1),'big',signed=True).decode())
 
 # Stay in school kids
 class Obstruct(object):

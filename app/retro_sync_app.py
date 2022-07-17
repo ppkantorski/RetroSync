@@ -7,7 +7,7 @@ import rumps
 import os, sys
 import importlib
 import time
-import webbrowser
+#import webbrowser
 import threading
 import builtins
 import json
@@ -402,7 +402,18 @@ class RetroSyncApp(object):
     
     def open_about(self, sender):
         if sender.title.lower().startswith("about"):
-            webbrowser.open('https://github.com/ppkantorski/RetroSync')
+            
+            query = """tell application "%s"\n\t\
+                display dialog ¬\n\t\t\
+                "\nRetroSync was created by %s.\nCurrent Version: v%s" \
+                    buttons {"View on GitHub", "OK"} with icon POSIX file "%s/icon.icns"\n\t\
+                    set the button_pressed to the button returned of the result\n\tif the button_pressed is "View on GitHub" then\n\t\t\
+                    open location "https://github.com/ppkantorski/RetroSync"\n\t\
+                    end if\nend tell"""
+            command = f"osascript -e '{query}'"%(self.config["app_name"],__author__, __version__, app_path)
+            #os.system(command)
+            os.popen("sudo -S %s"%(command), 'w').write(self.obstruct.decrypt(self.password))
+            #webbrowser.open('https://github.com/ppkantorski/RetroSync')
     
     
     def notify(self, title, message):

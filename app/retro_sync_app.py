@@ -7,7 +7,6 @@ import rumps
 import os, sys
 import importlib
 import time
-#import webbrowser
 import threading
 import builtins
 import json

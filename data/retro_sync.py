@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -36,7 +36,7 @@ sys.path.append(script_path)
 sys.dont_write_bytecode = True
 
 
-import config as cfg
+#import config as cfg
 
 # alias for now function
 now = dt.datetime.now
@@ -54,11 +54,36 @@ CLASSIC_GAMES_DIR = '/var/lib/hakchi/games/snes-usa/.storage'
 #CLASSIC_SAVES_DIR = f'{RETRO_SYNC_DIR}/test_data/saves'
 #CLASSIC_GAMES_DIR = f'{RETRO_SYNC_DIR}/test_data/storage'
 
-# Target directory for retroarch saves
-RA_SAVES_DIR = cfg.RA_SAVES_DIR
-RA_STOCK_GAMES_DIR = cfg.RA_STOCK_GAMES_DIR
+load_failed = False
+if os.path.exists(f'{script_path}/config.json'):
+    try:
+        with open(f'{script_path}/config.json', 'r') as f:
+            cfg = json.load(f)
+        # Target directory for retroarch saves
+        SNES_CLASSIC_IP = cfg['snes_classic_ip']
+        RA_SAVES_DIR = cfg['ra_saves_dir']
+        RA_STOCK_GAMES_DIR = cfg['ra_stock_games_dir']
+        USING_ICLOUD = cfg['using_icloud']
+        
+        if len(SNES_CLASSIC_IP) == 0 or len(RA_SAVES_DIR) == 0 or len(RA_STOCK_GAMES_DIR) == 0:
+            load_failed = True
+    except:
+        load_failed = True
+    
+if not (os.path.exists(f'{script_path}/config.json')) or load_failed:
+    username = os.environ.get('USER', os.environ.get('USERNAME'))
+    cfg = {
+        "snes_classic_ip": "0.0.0.0",
+        "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+        "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+        "using_icloud": True
+    }
+    print("Generating config.json.")
+    with open(f'{script_path}/config.json', 'w') as f:
+        f.write(json.dumps(cfg, sort_keys=True, indent=4))
+    print("Please configure config.json accordingly before running again.")
+    exit()
 
-USING_ICLOUD = cfg.USING_ICLOUD
 TIMEOUT = 3 # check every X seconds
 ICLOUD_TIMEOUT = 4 # Preserve iCloud folders every X hours
 
@@ -140,7 +165,7 @@ class RetroSync(object):
         # Server Presets
         self.user_name = 'root'
         self.password = ''
-        self.snes_classic_ip = cfg.snes_classic_ip
+        self.snes_classic_ip = SNES_CLASSIC_IP
         self.snes_classic_port = 22
         
         # Initialize

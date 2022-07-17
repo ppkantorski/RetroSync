@@ -7,6 +7,7 @@ import rumps
 import os, sys
 import importlib
 import time
+#import webbrowser
 import threading
 import builtins
 import json
@@ -197,15 +198,17 @@ class RetroSyncApp(object):
             if not os.path.exists(f'{data_path}/config.json') or failed_load:
                 self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
             
-            permission_request = rumps.Window(
+            current_snes_classic_ip = self.retro_sync_cfg['snes_classic_ip']
+            set_snes_classic_ip_window = rumps.Window(
                 'Enter SNES Classic IP',
                 'RetroSync Configurations',
-                default_text = self.retro_sync_cfg['snes_classic_ip'],
-                dimensions= (102, 20)
+                default_text = current_snes_classic_ip,
+                dimensions = (102, 20),
+                cancel = True
             )
-            snes_classic_ip = permission_request.run().text.strip()
+            snes_classic_ip = set_snes_classic_ip_window.run().text.strip()
             
-            if len(snes_classic_ip.split('.')) == 4:
+            if len(snes_classic_ip.split('.')) == 4 and current_snes_classic_ip != snes_classic_ip:
                 self.retro_sync_cfg['snes_classic_ip'] = snes_classic_ip
                 
                 #print("Generating config.json.")
@@ -232,7 +235,9 @@ class RetroSyncApp(object):
             
             ra_saves_dir = formatted_response.lstrip(remove_str)
             
-            if len(ra_saves_dir) > 0:
+            current_ra_saves_dir = self.retro_sync_cfg['ra_saves_dir']
+            
+            if len(ra_saves_dir) > 0 and current_ra_saves_dir != ra_saves_dir:
                 
                 failed_load = False
                 if os.path.exists(f'{data_path}/config.json'):
@@ -270,7 +275,9 @@ class RetroSyncApp(object):
             
             ra_stock_games_dir = formatted_response.lstrip(remove_str)
             
-            if len(ra_stock_games_dir) > 0:
+            current_ra_stock_games_dir = self.retro_sync_cfg['ra_stock_games_dir']
+            
+            if len(ra_stock_games_dir) > 0 and current_ra_stock_games_dir != ra_stock_games_dir:
                 failed_load = False
                 if os.path.exists(f'{data_path}/config.json'):
                     try:

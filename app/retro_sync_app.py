@@ -24,7 +24,8 @@ DEFAULT_RETROSYNC_CFG = {
     "snes_classic_ip": "0.0.0.0",
     "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
     "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
-    "using_icloud": True
+    "using_icloud": True,
+    "using_modifications": True
 }
 
 if not os.path.exists(f'{data_path}/config.json'):
@@ -46,16 +47,7 @@ class RetroSyncApp(object):
         # Overload the RetroSync notify function
         self.retro_sync.notify = self.notify
         
-        failed_load = False
-        if os.path.exists(f'{data_path}/config.json'):
-            try:
-                with open(f'{data_path}/config.json', 'r') as f:
-                    self.retro_sync_cfg = json.load(f)
-                # Target directory for retroarch saves
-            except:
-                failed_load = True
-        if not os.path.exists(f'{data_path}/config.json') or failed_load:
-            self.initialize_retro_sync_cfg()
+        self.reload_config()
         
         # For detecting termination
         builtins.retro_sync_has_terminated = False
@@ -67,10 +59,13 @@ class RetroSyncApp(object):
             "stopping": "\u29D7 Stopping Data Sync...",
             "auto_start_off": "    Auto-Start",
             "auto_start_on": "\u2713 Auto-Start",
-            "configure": "\uD83C\uDFAE Configure...",
+            "options": "Options...",
+            "configure": "Configure...",#"\uD83C\uDFAE Configure...",
             "set_snes_classic_ip": "Set SNES Classic IP",
             "set_ra_saves_loc": "Set RetroArch Saves Location",
             "set_stock_games_loc": "Set Stock Games Location",
+            "enable_modifications": "Enable Modifications",
+            "disable_modifications": "Disable Modifications",
             "enable_icloud": "Enable iCloud Persistence",
             "disable_icloud": "Disable iCloud Persistence",
             "about": "About RetroSync 👾",
@@ -96,11 +91,12 @@ class RetroSyncApp(object):
         self.app.title = ''
         self.app.icon = f'{app_path}/icon_off.icns'
         
+        # Read Options file (used for storing app specific options like auto start)
         if os.path.exists(f'{app_path}/.options'):
             with open(f'{app_path}/.options', 'r') as f:
                 self.options = json.load(f)
         
-        #print(self.options)
+        
         if self.options['auto_start'] and os.path.exists(f'{data_path}/config.json'):
             self.start_stop_button = rumps.MenuItem(
                 title=self.config["stop"],
@@ -112,7 +108,7 @@ class RetroSyncApp(object):
             )
             print("Starting RetroSync")
             self.retro_sync.terminate = False
-            self.background_thread(self.retro_sync_loop, [])
+            background_thread(self.retro_sync_loop, [])
             self.app.icon = f'{app_path}/icon.icns'
             
         else:
@@ -161,18 +157,35 @@ class RetroSyncApp(object):
                 callback = self.enable_disable_icloud
             )
         
+        if not self.retro_sync_cfg["using_modifications"]:
+            self.enable_disable_modifications_button = rumps.MenuItem(
+                title = self.config["enable_modifications"],
+                callback = self.enable_disable_modifications
+            )
+        else:
+            self.enable_disable_modifications_button = rumps.MenuItem(
+                title = self.config["disable_modifications"],
+                callback = self.enable_disable_modifications
+            )
+        
         # Define app menu layout
         self.app.menu = [
             self.start_stop_button,
             self.auto_start_button,
             None,
             (
+                self.config["options"],
+                [
+                    self.enable_disable_modifications_button,
+                    self.enable_disable_icloud_button
+                ]
+            ),
+            (
                 self.config["configure"],
                 [
                     self.set_snes_classic_ip_button,
                     self.set_ra_saves_loc_button,
-                    self.set_stock_games_loc_button,
-                    self.enable_disable_icloud_button
+                    self.set_stock_games_loc_button
                 ]
             ),
             None,
@@ -183,20 +196,29 @@ class RetroSyncApp(object):
         ]
     
     
+    def reload_config(self):
+        failed_load = False
+        if os.path.exists(f'{data_path}/config.json'):
+            try:
+                with open(f'{data_path}/config.json', 'r') as f:
+                    self.retro_sync_cfg = json.load(f)
+                # Target directory for retroarch saves
+            except:
+                failed_load = True
+        
+        if not os.path.exists(f'{data_path}/config.json') or failed_load:
+            self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
+    
+    def write_config(self):
+        with open(f'{data_path}/config.json', 'w') as f:
+            f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+    
+    
+    
     def set_snes_classic_ip(self, sender):
         if sender.title == self.config["set_snes_classic_ip"]:
             
-            failed_load = False
-            if os.path.exists(f'{data_path}/config.json'):
-                try:
-                    with open(f'{data_path}/config.json', 'r') as f:
-                        self.retro_sync_cfg = json.load(f)
-                    # Target directory for retroarch saves
-                except:
-                    failed_load = True
-            
-            if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
+            self.reload_config()
             
             current_snes_classic_ip = self.retro_sync_cfg['snes_classic_ip']
             set_snes_classic_ip_window = rumps.Window(
@@ -210,11 +232,7 @@ class RetroSyncApp(object):
             
             if len(snes_classic_ip.split('.')) == 4 and current_snes_classic_ip != snes_classic_ip:
                 self.retro_sync_cfg['snes_classic_ip'] = snes_classic_ip
-                
-                #print("Generating config.json.")
-                with open(f'{data_path}/config.json', 'w') as f:
-                    f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
-                #print("Please configure config.json accordingly before running again.")
+                self.write_config()
                 
                 self.notify("RetroSync Config", "SNES Classic IP has been updated.\nRestart RetroSync to apply changes.")
     
@@ -239,21 +257,9 @@ class RetroSyncApp(object):
             
             if len(ra_saves_dir) > 0 and current_ra_saves_dir != ra_saves_dir:
                 
-                failed_load = False
-                if os.path.exists(f'{data_path}/config.json'):
-                    try:
-                        with open(f'{data_path}/config.json', 'r') as f:
-                            self.retro_sync_cfg = json.load(f)
-                    except:
-                        failed_load = True
-                
-                if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                    self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
-                
+                self.reload_config()
                 self.retro_sync_cfg['ra_saves_dir'] = ra_saves_dir
-                
-                with open(f'{data_path}/config.json', 'w') as f:
-                    f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+                self.write_config()
                 
                 self.notify("RetroSync Config", "RetroArch Saves Location has been updated.\nRestart RetroSync to apply changes.")
     
@@ -278,21 +284,9 @@ class RetroSyncApp(object):
             current_ra_stock_games_dir = self.retro_sync_cfg['ra_stock_games_dir']
             
             if len(ra_stock_games_dir) > 0 and current_ra_stock_games_dir != ra_stock_games_dir:
-                failed_load = False
-                if os.path.exists(f'{data_path}/config.json'):
-                    try:
-                        with open(f'{data_path}/config.json', 'r') as f:
-                            self.retro_sync_cfg = json.load(f)
-                    except:
-                        failed_load = True
-                
-                if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                    self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
-                
+                self.reload_config()
                 self.retro_sync_cfg['ra_stock_games_dir'] = ra_stock_games_dir
-                
-                with open(f'{data_path}/config.json', 'w') as f:
-                    f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+                self.write_config()
                 
                 self.notify("RetroSync Config", "Stock Games Location has been updated.\nRestart RetroSync to apply changes.")
     
@@ -300,49 +294,46 @@ class RetroSyncApp(object):
     def enable_disable_icloud(self, sender):
         if sender.title == self.config["enable_icloud"]:
             
-            failed_load = False
-            if os.path.exists(f'{data_path}/config.json'):
-                try:
-                    with open(f'{data_path}/config.json', 'r') as f:
-                        self.retro_sync_cfg = json.load(f)
-                    # Target directory for retroarch saves
-                except:
-                    failed_load = True
-            
-            if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
-            
+            self.reload_config()
             self.retro_sync_cfg['using_icloud'] = True
-            
-            with open(f'{data_path}/config.json', 'w') as f:
-                f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+            self.write_config()
             
             sender.title = self.config["disable_icloud"]
             
-            self.notify("RetroSync Config", "iCloud Persistence has been disabled.\nRestart RetroSync to apply changes.")
+            self.notify("RetroSync Option", "iCloud Persistence has been disabled.\nRestart RetroSync to apply changes.")
         
         elif sender.title == self.config["disable_icloud"]:
             
-            failed_load = False
-            if os.path.exists(f'{data_path}/config.json'):
-                try:
-                    with open(f'{data_path}/config.json', 'r') as f:
-                        self.retro_sync_cfg = json.load(f)
-                    # Target directory for retroarch saves
-                except:
-                    failed_load = True
-            
-            if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
-            
+            self.reload_config()
             self.retro_sync_cfg['using_icloud'] = False
-            
-            with open(f'{data_path}/config.json', 'w') as f:
-                f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
+            self.write_config()
             
             sender.title = self.config["enable_icloud"]
             
-            self.notify("RetroSync Config", "iCloud persistence has been enabled.\nRestart RetroSync to apply changes.")
+            self.notify("RetroSync Option", "iCloud persistence has been enabled.\nRestart RetroSync to apply changes.")
+    
+    
+    def enable_disable_modifications(self, sender):
+        if sender.title == self.config["enable_modifications"]:
+            
+            self.reload_config()
+            self.retro_sync_cfg['using_modifications'] = True
+            self.write_config()
+            
+            sender.title = self.config["disable_modifications"]
+            
+            self.notify("RetroSync Option", "Modifications has been disabled.\nRestart RetroSync to apply changes.")
+        
+        elif sender.title == self.config["disable_modifications"]:
+            
+            self.reload_config()
+            self.retro_sync_cfg['using_modifications'] = False
+            self.write_config()
+            
+            sender.title = self.config["enable_modifications"]
+            
+            self.notify("RetroSync Option", "Modifications has been enabled.\nRestart RetroSync to apply changes.")
+    
     
     def restart_app(self, sender):
         if sender.title == self.config["restart"]:
@@ -379,6 +370,7 @@ class RetroSyncApp(object):
             
         sender.count += 1
     
+    
     def start_stop_loop(self, sender):
         #if sender.title.lower().startswith(("start", "stop")):
         if sender.title == self.config["start"]:
@@ -386,7 +378,7 @@ class RetroSyncApp(object):
             #self.notify('RetroSync Startup', "Starting DataSync...")
             print("Starting RetroSync")
             self.retro_sync.terminate = False
-            self.background_thread(self.retro_sync_loop, [])
+            background_thread(self.retro_sync_loop, [])
             sender.title = self.config["stop"]
             self.app.icon = f'{app_path}/icon.icns'
             self.stop_loop.stop()
@@ -431,7 +423,7 @@ class RetroSyncApp(object):
     
     
     def notify(self, title, message):
-        self.background_thread(self.notify_command, [title, message])
+        background_thread(self.notify_command, [title, message])
     
     def notify_command(self, title, message):
         app_name = self.config["app_name"]
@@ -513,17 +505,17 @@ class RetroSyncApp(object):
             return True
         else:
             return False
-    
-    
-    ## For making object run in background
-    def background_thread(self, target, args_list):
-        args = ()
-        for i in range(len(args_list)):
-            args = args + (args_list[i],)
-        pr = threading.Thread(target=target, args=args)
-        pr.daemon = True
-        pr.start()
-        return pr
+
+
+## For making object run in background
+def background_thread(self, target, args_list):
+    args = ()
+    for i in range(len(args_list)):
+        args = args + (args_list[i],)
+    pr = threading.Thread(target=target, args=args)
+    pr.daemon = True
+    pr.start()
+    return pr
 
 
 

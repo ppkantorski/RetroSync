@@ -13,7 +13,7 @@ Sync Retroarch saves between SNES classic and computer.
 4.  You can also use the `deploy.zsh` script to launch retro_sync in the background via Screen GNU.  To reattach to the process, type `screen -r retro_sync`.  To detatch, press `CTRL+A, CTRL+D`.
 
 # RetroSync iOS/iCloud (optional)
-- You will need to set the RetroArch saves folder to `/{icloud_dir}/RetroArch/saves` in the `config.py` file.
+- You will need to set the RetroArch saves folder to `/{icloud_dir}/RetroArch/saves` in `config.json`.
 - Under Automation within the Shortcuts app on your iPhone, add **RetroSync iCloud to iOS** to RetroArch as an automation script for opening the RetroArch iOS app and **RetroSync iOS to iCloud** as an automation script for closing the RetroArch iOS app.
 - On the iPhone itself, new saves are pulled when the app is opened then pushed when the app is closed.
 

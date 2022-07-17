@@ -58,7 +58,7 @@ username = os.environ.get('USER', os.environ.get('USERNAME'))
 DEFAULT_RETROSYNC_CFG = {
     "snes_classic_ip": "420.69.1.337",
     "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
-    "ra_stock_games_dir": "/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
     "using_icloud": True
 }
 
@@ -249,6 +249,8 @@ class RetroSync(object):
         
     
     def check_connection(self):
+        if self.snes_classic_ip == DEFAULT_RETROSYNC_CFG['snes_classic_ip']:
+            return False
         try:
             test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             test_socket.connect((self.snes_classic_ip, self.snes_classic_port))

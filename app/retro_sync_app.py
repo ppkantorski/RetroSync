@@ -251,7 +251,7 @@ class RetroSyncApp(object):
                 with open(f'{data_path}/config.json', 'w') as f:
                     f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
                 
-                self.notify("RetroSync Config", "RetroArch Saves location has been updated. Restart RetroSync to apply changes.")
+                self.notify("RetroSync Config", "RetroArch Saves location has been updated.\nRestart RetroSync to apply changes.")
     
     def set_stock_games_loc(self, sender):
         if sender.title == self.config["set_stock_games_loc"]:
@@ -288,7 +288,7 @@ class RetroSyncApp(object):
                 with open(f'{data_path}/config.json', 'w') as f:
                     f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
                 
-                self.notify("RetroSync Config", "Stock Games location has been updated. Restart RetroSync to apply changes.")
+                self.notify("RetroSync Config", "Stock Games location has been updated.\nRestart RetroSync to apply changes.")
     
     
     def enable_disable_icloud(self, sender):
@@ -313,7 +313,7 @@ class RetroSyncApp(object):
             
             sender.title = self.config["disable_icloud"]
             
-            self.notify("RetroSync Config", "iCloud persistence has been disabled. Restart RetroSync to apply changes.")
+            self.notify("RetroSync Config", "iCloud persistence has been disabled.\nRestart RetroSync to apply changes.")
         
         elif sender.title == self.config["disable_icloud"]:
             
@@ -336,7 +336,7 @@ class RetroSyncApp(object):
             
             sender.title = self.config["enable_icloud"]
             
-            self.notify("RetroSync Config", "iCloud persistence has been enabled. Restart RetroSync to apply changes.")
+            self.notify("RetroSync Config", "iCloud persistence has been enabled.\nRestart RetroSync to apply changes.")
     
     def restart_app(self, sender):
         if sender.title == self.config["restart"]:

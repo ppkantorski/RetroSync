@@ -23,7 +23,7 @@ username = os.environ.get('USER', os.environ.get('USERNAME'))
 DEFAULT_RETROSYNC_CFG = {
     "snes_classic_ip": "420.69.1.337",
     "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
-    "ra_stock_games_dir": "/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
     "using_icloud": True
 }
 
@@ -421,12 +421,12 @@ class RetroSyncApp(object):
         
         builtins.retro_sync_has_terminated = False
         while True:
-            try:
-                self.retro_sync.start()
-            except Exception as e:
-                error = "Error {0}".format(str(e.args[0])).encode("utf-8")
-                print(error)
-                self.notify('RetroSync Error', error)
+            #try:
+            self.retro_sync.start()
+            #except Exception as e:
+            #    error = "Error {0}".format(str(e.args[0])).encode("utf-8")
+            #    print(error)
+            #    self.notify('RetroSync Error', error)
             self.retro_sync.has_restarted = True
             
             if self.retro_sync.terminate:

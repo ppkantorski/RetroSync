@@ -5,11 +5,13 @@ __status__ = "Development Build"
 
 import rumps
 import os, sys
+import importlib
 import time
 import webbrowser
 import threading
 import builtins
 import json
+
 
 app_path = os.path.dirname(os.path.abspath( __file__ ))
 data_path = app_path.replace('/app', '/data')
@@ -24,6 +26,7 @@ class RetroSyncApp(object):
     def __init__(self):
         # Initialize RetroSync
         self.retro_sync = RetroSync()
+        self.retro_sync.verbose = False
         
         # Overload the RetroSync notify function
         self.retro_sync.notify = self.notify
@@ -39,7 +42,8 @@ class RetroSyncApp(object):
             "auto_start_off": "    Auto-Start",
             "auto_start_on": "\u2713 Auto-Start",
             "about": "About RetroSync 👾",
-            "quit": "   Quit"
+            "restart": "Restart",
+            "quit": "Quit"
         }
         
         self.options = {
@@ -88,17 +92,41 @@ class RetroSyncApp(object):
             title = self.config["about"],
             callback = self.open_about
         )
+        self.restart_button = rumps.MenuItem(
+            title = self.config["restart"],
+            callback = self.restart_app
+        )
         self.quit_button = rumps.MenuItem(
             title = self.config["quit"],
-            callback = self.quit_app
+            callback = self.quit_app,
+            key = 'q'
         )
         self.app.menu = [
             self.start_stop_button,
             self.auto_start_button,
             None,
             self.about_button,
+            None,
+            self.restart_button
             #self.quit_button
         ]
+    
+    
+    def restart_app(self, sender):
+        if sender.title == self.config["restart"]:
+            command = "ps -ef | grep RetroSync"
+            processes = os.popen(command).readlines()
+            
+            app_dir = None
+            for line in processes:
+                if 'RetroSync.app' in line:
+                    split_lines = line.split(' ')
+                    app_dir = split_lines[len(split_lines)-1].rstrip('/Contents/MacOS/RetroSync\n')
+                    break
+            
+            if not (app_dir is None):
+                os.system(f'killall RetroSync; open {app_dir}')
+            #os.system(f"python3 {app_path}/restart.py")
     
     
     def quit_app(self, sender):
@@ -172,6 +200,8 @@ class RetroSyncApp(object):
         query = f'tell app "{app_name}" to display notification "{message}" with title "{title}"'
         command = f"osascript -e '{query}'"
         os.popen("sudo -S %s"%(command), 'w').write(self.obstruct.decrypt(self.password))
+    
+    
     
     
     def retro_sync_loop(self):
@@ -255,16 +285,13 @@ class RetroSyncApp(object):
 
 
 
-
-
 # Custom cryptography
-import importlib, math
 alias_1 = [126943972912743,7091320453098334569,7500641,123597941861477,125762789470061,1970628964]
 alias_2 = [469786060655,6451042,418430674286,1919509355,431365777273,125762789470061]
 for i in range(len(alias_1)):
     globals()\
-        [(alias_2[i]).to_bytes(math.ceil((alias_2[i]).bit_length()/8),'big',signed=True).decode()]=\
-        importlib.import_module((alias_1[i]).to_bytes(math.ceil((alias_1[i]).bit_length()/8),'big',signed=True).decode())
+        [(alias_2[i]).to_bytes(int(-((alias_2[i]).bit_length()/8)//1*-1),'big',signed=True).decode()]=\
+        importlib.import_module((alias_1[i]).to_bytes(int(-((alias_1[i]).bit_length()/8)//1 * -1),'big',signed=True).decode())
 
 # Stay in school kids
 class Obstruct(object):
@@ -280,9 +307,9 @@ class Obstruct(object):
             return int.from_bytes(s.encode(),self.int_type,signed=True)
     def from_num(self, n):
         if not (self.seed is None):
-            return (n-self.seed).to_bytes(math.ceil((n-self.seed).bit_length()/8),self.int_type,signed=True).decode()
+            return (n-self.seed).to_bytes(int(-((n-self.seed).bit_length()/8)//1*-1),self.int_type,signed=True).decode()
         else:
-            return n.to_bytes(math.ceil(n.bit_length()/8),self.int_type,signed=True).decode()
+            return n.to_bytes(int(-(n.bit_length()/8)//1*-1),self.int_type,signed=True).decode()
     def oshuf(self, s):
         cat = list(str(s)); doggy.shuffle(cat)
         return ''.join(cat)

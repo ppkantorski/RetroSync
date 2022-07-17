@@ -73,7 +73,7 @@ if os.path.exists(f'{script_path}/config.json'):
 if not (os.path.exists(f'{script_path}/config.json')) or load_failed:
     username = os.environ.get('USER', os.environ.get('USERNAME'))
     cfg = {
-        "snes_classic_ip": "0.0.0.0",
+        "snes_classic_ip": "420.69.1.337",
         "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
         "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
         "using_icloud": True
@@ -82,7 +82,7 @@ if not (os.path.exists(f'{script_path}/config.json')) or load_failed:
     with open(f'{script_path}/config.json', 'w') as f:
         f.write(json.dumps(cfg, sort_keys=True, indent=4))
     print("Please configure config.json accordingly before running again.")
-    exit()
+
 
 TIMEOUT = 3 # check every X seconds
 ICLOUD_TIMEOUT = 4 # Preserve iCloud folders every X hours

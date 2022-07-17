@@ -71,8 +71,8 @@ class RetroSyncApp(object):
             "set_snes_classic_ip": "Set SNES Classic IP",
             "set_ra_saves_loc": "Set RetroArch Saves Location",
             "set_stock_games_loc": "Set Stock Games Location",
-            "enable_icloud": "Enable Using iCloud",
-            "disable_icloud": "Disable Using iCloud",
+            "enable_icloud": "Enable iCloud Persistence",
+            "disable_icloud": "Disable iCloud Persistence",
             "about": "About RetroSync 👾",
             "restart": "Restart",
             "quit": "Quit"

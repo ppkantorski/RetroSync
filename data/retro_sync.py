@@ -54,6 +54,15 @@ CLASSIC_GAMES_DIR = '/var/lib/hakchi/games/snes-usa/.storage'
 #CLASSIC_SAVES_DIR = f'{RETRO_SYNC_DIR}/test_data/saves'
 #CLASSIC_GAMES_DIR = f'{RETRO_SYNC_DIR}/test_data/storage'
 
+username = os.environ.get('USER', os.environ.get('USERNAME'))
+DEFAULT_RETROSYNC_CFG = {
+    "snes_classic_ip": "420.69.1.337",
+    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+    "ra_stock_games_dir": "/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+    "using_icloud": True
+}
+
+
 load_failed = False
 if os.path.exists(f'{script_path}/config.json'):
     try:
@@ -71,13 +80,7 @@ if os.path.exists(f'{script_path}/config.json'):
         load_failed = True
     
 if not (os.path.exists(f'{script_path}/config.json')) or load_failed:
-    username = os.environ.get('USER', os.environ.get('USERNAME'))
-    cfg = {
-        "snes_classic_ip": "420.69.1.337",
-        "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
-        "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
-        "using_icloud": True
-    }
+    cfg = DEFAULT_RETROSYNC_CFG
     print("Generating config.json.")
     with open(f'{script_path}/config.json', 'w') as f:
         f.write(json.dumps(cfg, sort_keys=True, indent=4))

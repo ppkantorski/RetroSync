@@ -21,7 +21,7 @@ sys.dont_write_bytecode = True
 
 username = os.environ.get('USER', os.environ.get('USERNAME'))
 DEFAULT_RETROSYNC_CFG = {
-    "snes_classic_ip": "420.69.1.337",
+    "snes_classic_ip": "0.0.0.0",
     "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
     "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
     "using_icloud": True

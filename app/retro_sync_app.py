@@ -18,31 +18,23 @@ data_path = app_path.replace('/app', '/data')
 sys.path.append(data_path)
 sys.dont_write_bytecode = True
 
+
+username = os.environ.get('USER', os.environ.get('USERNAME'))
+DEFAULT_RETROSYNC_CFG = {
+    "snes_classic_ip": "420.69.1.337",
+    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+    "ra_stock_games_dir": "/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+    "using_icloud": True
+}
+
+if not os.path.exists(f'{data_path}/config.json'):
+    print("Generating config.json.")
+    with open(f'{data_path}/config.json', 'w') as f:
+        f.write(json.dumps(DEFAULT_RETROSYNC_CFG))
+    print("Please configure config.json accordingly before running again.")
+
 # Import RetroSync
 from retro_sync import RetroSync
-
-
-#if os.path.exists(f'{data_path}/config.json'):
-#    with open(f'{data_path}/config.json', 'r') as f:
-#        cfg = json.load(f)
-#    # Target directory for retroarch saves
-#    SNES_CLASSIC_IP = cfg['snes_classic_ip']
-#    RA_SAVES_DIR = cfg['ra_saves_dir']
-#    RA_STOCK_GAMES_DIR = cfg['ra_stock_games_dir']
-#    USING_ICLOUD = cfg['using_icloud']
-#else:
-#    username = os.environ.get('USER', os.environ.get('USERNAME'))
-#    cfg = {
-#        "snes_classic_ip": "192.168.1.337",
-#        "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
-#        "ra_stock_games_dir": "/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
-#        "using_icloud": True
-#    }
-#    print("Generating config.json.")
-#    with open(f'{data_path}/config.json', 'w') as f:
-#        f.write(json.dumps(cfg))
-#    print("Please configure config.json accordingly before running again.")
-
 
 
 class RetroSyncApp(object):
@@ -109,7 +101,7 @@ class RetroSyncApp(object):
                 self.options = json.load(f)
         
         #print(self.options)
-        if self.options['auto_start']:
+        if self.options['auto_start'] and os.path.exists(f'{data_path}/config.json'):
             self.start_stop_button = rumps.MenuItem(
                 title=self.config["stop"],
                 callback=self.start_stop_loop
@@ -190,15 +182,7 @@ class RetroSyncApp(object):
             #self.quit_button
         ]
     
-    def initialize_retro_sync_cfg(self):
-        username = os.environ.get('USER', os.environ.get('USERNAME'))
-        self.retro_sync_cfg = {
-            "snes_classic_ip": "420.69.1.337",
-            "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
-            "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
-            "using_icloud": True
-        }
-        
+    
     def set_snes_classic_ip(self, sender):
         if sender.title == self.config["set_snes_classic_ip"]:
             
@@ -212,7 +196,7 @@ class RetroSyncApp(object):
                     failed_load = True
             
             if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                self.initialize_retro_sync_cfg()
+                self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
             
             permission_request = rumps.Window(
                 'Enter SNES Classic IP',
@@ -258,7 +242,7 @@ class RetroSyncApp(object):
                         failed_load = True
                 
                 if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                    self.initialize_retro_sync_cfg()
+                    self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
                 
                 self.retro_sync_cfg['ra_saves_dir'] = ra_saves_dir
                 
@@ -294,7 +278,7 @@ class RetroSyncApp(object):
                         failed_load = True
                 
                 if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                    self.initialize_retro_sync_cfg()
+                    self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
                 
                 self.retro_sync_cfg['ra_stock_games_dir'] = ra_stock_games_dir
                 
@@ -316,8 +300,7 @@ class RetroSyncApp(object):
                     failed_load = True
             
             if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                username = os.environ.get('USER', os.environ.get('USERNAME'))
-                self.initialize_retro_sync_cfg()
+                self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
             
             self.retro_sync_cfg['using_icloud'] = True
             
@@ -338,8 +321,7 @@ class RetroSyncApp(object):
                     failed_load = True
             
             if not os.path.exists(f'{data_path}/config.json') or failed_load:
-                username = os.environ.get('USER', os.environ.get('USERNAME'))
-                self.initialize_retro_sync_cfg()
+                self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
             
             self.retro_sync_cfg['using_icloud'] = False
             

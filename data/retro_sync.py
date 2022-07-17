@@ -59,7 +59,8 @@ DEFAULT_RETROSYNC_CFG = {
     "snes_classic_ip": "0.0.0.0",
     "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
     "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
-    "using_icloud": True
+    "using_icloud": True,
+    "using_modifications": True
 }
 
 
@@ -73,6 +74,7 @@ if os.path.exists(f'{script_path}/config.json'):
         RA_SAVES_DIR = cfg['ra_saves_dir']
         RA_STOCK_GAMES_DIR = cfg['ra_stock_games_dir']
         USING_ICLOUD = cfg['using_icloud']
+        USING_MODIFICATIONS = cfg['using_modifications']
         
         if len(SNES_CLASSIC_IP) == 0 or len(RA_SAVES_DIR) == 0 or len(RA_STOCK_GAMES_DIR) == 0:
             load_failed = True
@@ -188,7 +190,8 @@ class RetroSync(object):
         self.stock_game_id_list = list(self.stock_game_id_dict.keys())
         
         # Safety Presets
-        self.disable_modifications = False
+        self.using_modifications = USING_MODIFICATIONS
+        self.using_icloud = USING_ICLOUD
        
         # Print Presets
         self.verbose = True
@@ -728,7 +731,7 @@ class RetroSync(object):
                     print(f"[{now()}] RetroSync has been shutdown.")
                 break
             
-            if USING_ICLOUD and sys.platform == 'darwin':
+            if self.using_icloud and sys.platform == 'darwin':
                 time_out = time.time()-time_in
                 if time_in == initial_time and not self.has_restarted:
                     if self.verbose:
@@ -776,7 +779,7 @@ class RetroSync(object):
                 self.update_local_saves(target='snes', save_type='canoe')
                 self.update_local_saves(target='snes')
                 
-                if not self.disable_modifications:
+                if self.using_modifications:
                     # Push snes save changes to retroarch
                     
                     #self.push_save_changes(target='retroarch', save_type='canoe')

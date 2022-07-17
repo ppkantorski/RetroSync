@@ -508,7 +508,7 @@ class RetroSyncApp(object):
 
 
 ## For making object run in background
-def background_thread(self, target, args_list):
+def background_thread(target, args_list):
     args = ()
     for i in range(len(args_list)):
         args = args + (args_list[i],)

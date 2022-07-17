@@ -415,19 +415,23 @@ class RetroSyncApp(object):
         os.popen("sudo -S %s"%(command), 'w').write(self.obstruct.decrypt(self.password))
     
     
-    
-    
     def retro_sync_loop(self):
-        
+        MAX_ERRORS = 3
         builtins.retro_sync_has_terminated = False
+        error_count = 0
         while True:
-            #try:
-            self.retro_sync.start()
-            #except Exception as e:
-            #    error = "Error {0}".format(str(e.args[0])).encode("utf-8")
-            #    print(error)
-            #    self.notify('RetroSync Error', error)
+            try:
+                self.retro_sync.start()
+                error_count = 0
+            except Exception as e:
+                print(e)
+                error = "Error {0}".format(str(e.args[0])).encode("utf-8")
+                self.notify('RetroSync Error', error)
+                error_count += 1
             self.retro_sync.has_restarted = True
+            
+            if error_count >= MAX_ERRORS:
+                self.retro_sync.terminate = True
             
             if self.retro_sync.terminate:
                 break

@@ -20,6 +20,7 @@ Sync Retroarch saves between SNES classic and computer.
 2.  Add the local IP for the SNES classic to `config.json` along with the retroarch folder on your computer you want to sync.
 3.  To use the script enter `python3 /path/to/script/retro_sync.py` on the Command-Line.
 4.  You can also use the `deploy.zsh` script to launch retro_sync in the background via Screen GNU.  To reattach to the process, type `screen -r retro_sync`.  To detatch, press `CTRL+A, CTRL+D`.
+
 sidenote: Python script should be compatible with Windows and Linux.
 
 ## RetroSync iOS/iCloud (optional)

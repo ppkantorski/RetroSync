@@ -7,8 +7,14 @@ Sync Retroarch saves between SNES classic and computer.
 
 - You may want to set the hotkey "Quit Retroarch" to DOWN+SELECT if you want saving to be handled properly when pressing the command to return to the SNES menu. Otherwise you will have to quit RetroArch manually.  This is not an issue with Canoe games. Unlike RetroArch games, moment a Canoe game is saved, the battery save is updated immediately.  After correctly quitting RetroArch, RetroArch battery saves will made the moment you return to the main menu after saving.
 
-
 # Installation
+1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
+2.  Unzip the contents to `/Users/{user_name}/Documents/RetroSync`.
+3.  Run the python3 build.py. This will re-build the RetroSync.app as well install the essential Python packages.
+4.  Move RetroSync.app to your applications folder.
+5.  `/data/config.json` will be auto-generated if it does not exist upon boot. Modify `/data/config.json` accordingly (in GUI or manually).
+
+# Installation (for just Python usage)
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
 2.  Add the local IP for the SNES classic to `config.json` along with the retroarch folder on your computer you want to sync.
 3.  To use the script enter `python3 /path/to/script/retro_sync.py` on the Command-Line.

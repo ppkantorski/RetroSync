@@ -193,8 +193,8 @@ class RetroSync(object):
         self.using_modifications = USING_MODIFICATIONS
         self.using_icloud = USING_ICLOUD
        
-        # Print Presets
-        self.verbose = True
+        # Default Print Presets
+        self.verbose = False
         
         # Initialize Directories
         self.ra_saves_is_empty = False
@@ -226,8 +226,8 @@ class RetroSync(object):
     # For making object run in background
     def background_thread(self, target, args_list):
         args = ()
-        for i in range(len(args_list)):
-            args = args + (args_list[i],)
+        for arg in args_list:
+            args += (arg,)
         pr = threading.Thread(target=target, args=args)
         pr.daemon = True
         pr.start()
@@ -239,9 +239,12 @@ class RetroSync(object):
             self.background_thread(self.notify_command, [title, message])
     
     def notify_command(self, title, message):
-        os.system("""
-                  osascript -e 'display notification "{}" with title "{}"'
-                  """.format(message, title))
+        os.system(
+            """
+            osascript -e 'display notification "{}" with title "{}"'
+            """.format(message.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'"), \
+                title.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'"))
+        )
         
         #app_name = "RetroSync"
         #query = f'tell app "{app_name}" to display notification "{message}" with title "{title}"'
@@ -266,16 +269,13 @@ class RetroSync(object):
     
     
     def connect_to_ftp(self):
-        
         self.ftp = ftpretty_mod(self.snes_classic_ip, self.user_name, self.password)
     
     def disconnect_from_ftp(self):
         if not (self.ftp is None):
             self.ftp.close()
     
-    
     def upload_file_via_ftp(self, from_path, to_path):
-        
         self.connect_to_ftp()
         self.ftp.put(from_path, to_path)
         self.disconnect_from_ftp()
@@ -293,7 +293,6 @@ class RetroSync(object):
         self.ftp.get_tree_custom(from_path, to_path)
         self.disconnect_from_ftp()
     
-    
     def copy_and_overwrite(self, from_path, to_path):
         if os.path.exists(to_path):
             shutil.rmtree(to_path)
@@ -310,7 +309,6 @@ class RetroSync(object):
         elif target == 'retroarch':
             # Copy saves from Retroarch to temp directory
             self.copy_and_overwrite(RA_SAVES_DIR, LOCAL_RA_SAVES_TMP_DIR)
-    
     
     def update_local_saves(self, target, save_type='retroarch'):
         if target == 'snes':
@@ -482,7 +480,6 @@ class RetroSync(object):
                     print(f'{actual_game_names[i]} could not be found. {closest_match}')
         #pprint(self.canoe_game_id_dict)
     
-    
     def remove_prefix(self, string):
         while True:
             start_index = string.find('(')
@@ -500,7 +497,6 @@ class RetroSync(object):
                 break
         string = string.rstrip(' ')
         return string
-    
     
     def hex_to_index(self, hex_offset):
         return int(hex_offset, 16)*2
@@ -535,7 +531,6 @@ class RetroSync(object):
             print(f'[{now()}] Cartridge.sram and cartridge.sram.hash are now ready.')
     
     def convert_save_to_retroarch(self, from_file, to_file):
-        
         if os.path.exists(from_file):
             with open(from_file, 'rb') as sramfile:
                 sram_data = sramfile.read()
@@ -603,24 +598,16 @@ class RetroSync(object):
                 # Copy saves to local directory (backup too)
                 for game_id in self.canoe_game_id_dict.keys():
                     file_name = self.canoe_game_id_dict[game_id]
-                    
                     from_file = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram'
-                    with open(from_file, 'rb') as smfile:
-                        srm_data = srmfile.read()
-                    
                     self.convert_save_to_retroarch(from_file, f'{LOCAL_RA_SAVES_TMP_DIR}/{file_name}.srm')
                     self.convert_save_to_retroarch(from_file, f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm')
                     
-                    #shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_TMP_DIR}/{file_name}.srm') # copy and convert
-                    #shutil.copyfile(f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram', f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm') # copy and convert
                     if self.verbose:
                         print(f'[{now()}] Retroarch save for {file_name} has been overwritten by Classic save.')
             elif target == 'snes':
                 # Copy saves to local directory (backup too)
                 for game_id in self.canoe_game_id_dict.keys():
                     file_name = self.canoe_game_id_dict[game_id]
-                    #shutil.copyfile(f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm', f'{LOCAL_CLASSIC_SAVES_TMP_DIR}/{game_id}/cartridge.sram')
-                    #shutil.copyfile(f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm', f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram')
                     from_file = f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm'
                     self.convert_save_to_canoe(from_file, f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}')
                     self.convert_save_to_canoe(from_file, f'{LOCAL_CLASSIC_SAVES_TMP_DIR}/{game_id}')
@@ -675,7 +662,6 @@ class RetroSync(object):
     
     
     def push_save_changes(self, target):
-        
         if target == 'snes':
             while True:
                 if len(self.ra_update_list) == 0:
@@ -744,6 +730,9 @@ class RetroSync(object):
                     self.background_thread(self.perserve_icloud_folders, [])
                     time_in = time.time()
             
+            #else:
+            #    self.notify(title='Test', message=f'iCloud has been disabled')
+            
             if self.verbose:
                 print(f'[{now()}] Searching for SNES Classic on local network.')
             if self.check_connection():
@@ -754,6 +743,7 @@ class RetroSync(object):
                     print(f'[{now()}] SNES Classic is online!')
                     print(f'[{now()}] Pulling Retroarch saves to temporary local directory...')
                 self.pull_saves(target='retroarch') # pulls to temporary directory
+                
                 # Update save files within the local directory from the tempoarary directory.
                 # This also generates a list of titles that have been changed on the SNES side
                 if self.verbose:
@@ -789,6 +779,7 @@ class RetroSync(object):
                     #self.push_save_changes(target='snes', save_type='canoe')
                     self.push_save_changes(target='snes')
                 
+                
                 if self.verbose:
                     print(f'[{now()}] Checking for changes again in {TIMEOUT}s.')
                 time.sleep(TIMEOUT)
@@ -806,7 +797,7 @@ class RetroSync(object):
 
 if __name__ == '__main__':
     retro_sync = RetroSync()
-    
+    retro_sync.verbose = True
     while True:
         try:
             retro_sync.start()

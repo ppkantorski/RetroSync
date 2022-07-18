@@ -9,7 +9,6 @@ import importlib
 import time
 #import webbrowser
 import threading
-import builtins
 import json
 
 
@@ -19,14 +18,15 @@ sys.path.append(data_path)
 sys.dont_write_bytecode = True
 
 
-username = os.environ.get('USER', os.environ.get('USERNAME'))
-DEFAULT_RETROSYNC_CFG = {
-    "snes_classic_ip": "0.0.0.0",
-    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
-    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
-    "using_icloud": True,
-    "using_modifications": True
-}
+#username = os.environ.get('USER', os.environ.get('USERNAME'))
+#DEFAULT_RETROSYNC_CFG = {
+#    "snes_classic_ip": "0.0.0.0",
+#    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+#    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+#    "using_icloud": True,
+#    "using_modifications": True
+#}
+from retro_sync import DEFAULT_RETROSYNC_CFG
 
 if not os.path.exists(f'{data_path}/config.json'):
     print("Generating config.json.")
@@ -50,7 +50,7 @@ class RetroSyncApp(object):
         self.reload_config()
         
         # For detecting termination
-        builtins.retro_sync_has_terminated = False
+        self.retro_sync_has_terminated = False
         
         self.config = {
             "app_name": "RetroSync",
@@ -96,7 +96,42 @@ class RetroSyncApp(object):
             with open(f'{app_path}/.options', 'r') as f:
                 self.options = json.load(f)
         
+        # load menu buttons
+        self.load_menu_buttons()
         
+        # Define app menu layout
+        self.app.menu = [
+            self.start_stop_button,
+            self.auto_start_button,
+            None,
+            (
+                self.config["options"],
+                [
+                    self.toggle_modifications_button,
+                    self.toggle_icloud_button
+                ]
+            ),
+            (
+                self.config["configure"],
+                [
+                    self.set_snes_classic_ip_button,
+                    self.set_ra_saves_loc_button,
+                    self.set_stock_games_loc_button
+                ]
+            ),
+            None,
+            self.about_button,
+            None,
+            self.restart_button
+            #self.quit_button
+        ]
+    
+    # Run app alias
+    def run(self):
+        self.app.run()
+    
+    def load_menu_buttons(self):
+        # Menu Buttons
         if self.options['auto_start'] and os.path.exists(f'{data_path}/config.json'):
             self.start_stop_button = rumps.MenuItem(
                 title=self.config["stop"],
@@ -147,54 +182,26 @@ class RetroSyncApp(object):
             callback = self.set_stock_games_loc
         )
         if not self.retro_sync_cfg["using_icloud"]:
-            self.enable_disable_icloud_button = rumps.MenuItem(
+            self.toggle_icloud_button = rumps.MenuItem(
                 title = self.config["enable_icloud"],
-                callback = self.enable_disable_icloud
+                callback = self.toggle_icloud
             )
         else:
-            self.enable_disable_icloud_button = rumps.MenuItem(
+            self.toggle_icloud_button = rumps.MenuItem(
                 title = self.config["disable_icloud"],
-                callback = self.enable_disable_icloud
+                callback = self.toggle_icloud
             )
         
         if not self.retro_sync_cfg["using_modifications"]:
-            self.enable_disable_modifications_button = rumps.MenuItem(
+            self.toggle_modifications_button = rumps.MenuItem(
                 title = self.config["enable_modifications"],
-                callback = self.enable_disable_modifications
+                callback = self.toggle_modifications
             )
         else:
-            self.enable_disable_modifications_button = rumps.MenuItem(
+            self.toggle_modifications_button = rumps.MenuItem(
                 title = self.config["disable_modifications"],
-                callback = self.enable_disable_modifications
+                callback = self.toggle_modifications
             )
-        
-        # Define app menu layout
-        self.app.menu = [
-            self.start_stop_button,
-            self.auto_start_button,
-            None,
-            (
-                self.config["options"],
-                [
-                    self.enable_disable_modifications_button,
-                    self.enable_disable_icloud_button
-                ]
-            ),
-            (
-                self.config["configure"],
-                [
-                    self.set_snes_classic_ip_button,
-                    self.set_ra_saves_loc_button,
-                    self.set_stock_games_loc_button
-                ]
-            ),
-            None,
-            self.about_button,
-            None,
-            self.restart_button
-            #self.quit_button
-        ]
-    
     
     def reload_config(self):
         failed_load = False
@@ -212,7 +219,6 @@ class RetroSyncApp(object):
     def write_config(self):
         with open(f'{data_path}/config.json', 'w') as f:
             f.write(json.dumps(self.retro_sync_cfg, sort_keys=True, indent=4))
-    
     
     
     def set_snes_classic_ip(self, sender):
@@ -291,7 +297,7 @@ class RetroSyncApp(object):
                 self.notify("RetroSync Config", "Stock Games Location has been updated.\nRestart RetroSync to apply changes.")
     
     
-    def enable_disable_icloud(self, sender):
+    def toggle_icloud(self, sender):
         if sender.title == self.config["enable_icloud"]:
             
             self.reload_config()
@@ -300,6 +306,7 @@ class RetroSyncApp(object):
             
             sender.title = self.config["disable_icloud"]
             
+            self.retro_sync.using_icloud = self.retro_sync_cfg['using_icloud']
             self.notify("RetroSync Option", "iCloud Persistence has been disabled.\nRestart RetroSync to apply changes.")
         
         elif sender.title == self.config["disable_icloud"]:
@@ -310,10 +317,11 @@ class RetroSyncApp(object):
             
             sender.title = self.config["enable_icloud"]
             
+            self.retro_sync.using_icloud = self.retro_sync_cfg['using_icloud']
             self.notify("RetroSync Option", "iCloud persistence has been enabled.\nRestart RetroSync to apply changes.")
     
     
-    def enable_disable_modifications(self, sender):
+    def toggle_modifications(self, sender):
         if sender.title == self.config["enable_modifications"]:
             
             self.reload_config()
@@ -322,7 +330,9 @@ class RetroSyncApp(object):
             
             sender.title = self.config["disable_modifications"]
             
-            self.notify("RetroSync Option", "Modifications has been disabled.\nRestart RetroSync to apply changes.")
+            
+            self.retro_sync.using_modifications = self.retro_sync_cfg['using_modifications']
+            self.notify("RetroSync Option", "Modifications has been disabled.")
         
         elif sender.title == self.config["disable_modifications"]:
             
@@ -332,7 +342,8 @@ class RetroSyncApp(object):
             
             sender.title = self.config["enable_modifications"]
             
-            self.notify("RetroSync Option", "Modifications has been enabled.\nRestart RetroSync to apply changes.")
+            self.retro_sync.using_modifications = self.retro_sync_cfg['using_modifications']
+            self.notify("RetroSync Option", "Modifications has been enabled.")
     
     
     def restart_app(self, sender):
@@ -361,18 +372,16 @@ class RetroSyncApp(object):
         self.start_stop_button.title = self.config["stopping"]
         self.start_stop_button.set_callback(None)
         self.app.icon = f'{app_path}/icon_stopping.icns'
-        if builtins.retro_sync_has_terminated:
+        if self.retro_sync_has_terminated:
             self.start_stop_button.title = self.config["start"]
             self.start_stop_button.set_callback(self.start_stop_loop)
-            builtins.retro_sync_has_terminated = False
+            self.retro_sync_has_terminated = False
             self.app.icon = f'{app_path}/icon_off.icns'
             self.stop_loop.stop()
             
         sender.count += 1
     
-    
     def start_stop_loop(self, sender):
-        #if sender.title.lower().startswith(("start", "stop")):
         if sender.title == self.config["start"]:
             self.stop_loop.count = 0
             #self.notify('RetroSync Startup', "Starting DataSync...")
@@ -388,7 +397,6 @@ class RetroSyncApp(object):
             
             self.retro_sync.terminate = True
             self.stop_loop.start()
-    
     
     def auto_start(self, sender):
         if sender.title == self.config["auto_start_off"]:
@@ -426,7 +434,9 @@ class RetroSyncApp(object):
         background_thread(self.notify_command, [title, message])
     
     def notify_command(self, title, message):
-        app_name = self.config["app_name"]
+        title = title.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'")
+        message = message.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'")
+        app_name = self.config["app_name"].replace('"', '\\"').replace("'", "'"+'"\'"'+"\'")
         query = f'tell app "{app_name}" to display notification "{message}" with title "{title}"'
         command = f"osascript -e '{query}'"
         os.popen("sudo -S %s"%(command), 'w').write(self.obstruct.decrypt(self.password))
@@ -434,7 +444,7 @@ class RetroSyncApp(object):
     
     def retro_sync_loop(self):
         MAX_ERRORS = 3
-        builtins.retro_sync_has_terminated = False
+        self.retro_sync_has_terminated = False
         error_count = 0
         while True:
             try:
@@ -455,11 +465,8 @@ class RetroSyncApp(object):
             
             time.sleep(5)
         self.retro_sync.has_restarted = False
-        builtins.retro_sync_has_terminated = True
+        self.retro_sync_has_terminated = True
     
-    
-    def run(self):
-        self.app.run()
     
     
     # Prompt user for password with retry loop
@@ -510,8 +517,8 @@ class RetroSyncApp(object):
 ## For making object run in background
 def background_thread(target, args_list):
     args = ()
-    for i in range(len(args_list)):
-        args = args + (args_list[i],)
+    for arg in args_list:
+        args += (arg,)
     pr = threading.Thread(target=target, args=args)
     pr.daemon = True
     pr.start()

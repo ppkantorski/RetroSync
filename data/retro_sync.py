@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -715,7 +715,7 @@ class RetroSync(object):
                 self.notify(title='RetroSync Offline', message=f'Data Sync has been haulted.')
                 if self.verbose:
                     print(f"[{now()}] RetroSync has been shutdown.")
-                break
+                return
             
             if self.using_icloud and sys.platform == 'darwin':
                 time_out = time.time()-time_in

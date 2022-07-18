@@ -13,7 +13,7 @@ Sync Retroarch saves between SNES classic and computer.
 2.  Unzip the contents to `/Users/{user_name}/Documents/RetroSync`.
 3.  Run the python3 build.py. This will re-build the RetroSync.app as well install the essential Python packages.
 4.  Move RetroSync.app to your applications folder.
-5.  `/data/config.json` will be auto-generated if it does not exist upon boot. Modify accordingly (in GUI or manually).
+5.  `/data/config.json` will be auto-generated if it does not exist upon boot. Modify accordingly (in GUI or manually) then restart.
 
 ## Installation (for just Python usage)
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.

@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -355,7 +355,7 @@ class RetroSyncApp(object):
             for line in processes:
                 if 'RetroSync.app' in line:
                     split_lines = line.split(' ')
-                    app_dir = split_lines[len(split_lines)-1].rstrip('/Contents/MacOS/RetroSync\n')
+                    app_dir = split_lines[len(split_lines)-1].replace('/Contents/MacOS/RetroSync\n', '')
                     break
             
             if not (app_dir is None):

@@ -7,35 +7,35 @@ Sync Retroarch saves between SNES classic and computer.
 
 - You may want to set the hotkey "Quit Retroarch" to DOWN+SELECT if you want saving to be handled properly when pressing the command to return to the SNES menu. Otherwise you will have to quit RetroArch manually.  This is not an issue with Canoe games. Unlike RetroArch games, moment a Canoe game is saved, the battery save is updated immediately.  After correctly quitting RetroArch, RetroArch battery saves will made the moment you return to the main menu after saving.
 
-### Installation
+## Installation
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
 2.  Unzip the contents to `/Users/{user_name}/Documents/RetroSync`.
 3.  Run the python3 build.py. This will re-build the RetroSync.app as well install the essential Python packages.
 4.  Move RetroSync.app to your applications folder.
 5.  `/data/config.json` will be auto-generated if it does not exist upon boot. Modify accordingly (in GUI or manually).
 
-### Installation (for just Python usage)
+## Installation (for just Python usage)
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
 2.  Add the local IP for the SNES classic to `config.json` along with the retroarch folder on your computer you want to sync.
 3.  To use the script enter `python3 /path/to/script/retro_sync.py` on the Command-Line.
 4.  You can also use the `deploy.zsh` script to launch retro_sync in the background via Screen GNU.  To reattach to the process, type `screen -r retro_sync`.  To detatch, press `CTRL+A, CTRL+D`.
 
-### RetroSync iOS/iCloud (optional)
+## RetroSync iOS/iCloud (optional)
 - You will need to set the RetroArch saves folder to `/{icloud_dir}/RetroArch/saves` in `config.json`.
 - Under Automation within the Shortcuts app on your iPhone, add **RetroSync iCloud to iOS** to RetroArch as an automation script for opening the RetroArch iOS app and **RetroSync iOS to iCloud** as an automation script for closing the RetroArch iOS app.
 - On the iPhone itself, new saves are pulled when the app is opened then pushed when the app is closed.
 
-RetroSync iOS to iCloud
+### RetroSync iOS to iCloud
 
 https://www.icloud.com/shortcuts/7fbd2e2e02c74e9b9055fc2939e57a21
 
-RetroSync iCloud to iOS
+### RetroSync iCloud to iOS
 
 https://www.icloud.com/shortcuts/5a9e26091cc34e7293cc2927f3242302
 
 - (macOS Only) To prevent iCloud from constantly offloading a particular directory, in this case the RetroArch directory, locally on your Mac, you will want to install **Preserve iCloud Folders**, then set `USING_ICLOUD = True`.
 
-Preserve iCloud Folders (macOS Shortcuts script)
+### Preserve iCloud Folders (macOS Shortcuts script)
 
 https://www.icloud.com/shortcuts/ad522b16a20a474c87f7a768fb278f7d
 

@@ -80,7 +80,8 @@ DEFAULT_RETROSYNC_CFG = {
     "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
     "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
     "using_icloud": True,
-    "using_modifications": True
+    "using_modifications": True,
+    "using_telegram": False
 }
 
 
@@ -95,6 +96,7 @@ if os.path.exists(f'{data_path}/config.json'):
         RA_STOCK_GAMES_DIR = cfg['ra_stock_games_dir']
         USING_ICLOUD = cfg['using_icloud']
         USING_MODIFICATIONS = cfg['using_modifications']
+        USING_TELEGRAM = cfg['using_telegram']
         
         if len(SNES_CLASSIC_IP) == 0 or len(RA_SAVES_DIR) == 0 or len(RA_STOCK_GAMES_DIR) == 0:
             load_failed = True
@@ -212,6 +214,7 @@ class RetroSync(object):
         # Safety Presets
         self.using_modifications = USING_MODIFICATIONS
         self.using_icloud = USING_ICLOUD
+        self.using_telegram = USING_TELEGRAM
        
         # Default Print Presets
         self.verbose = False
@@ -274,7 +277,7 @@ class RetroSync(object):
                 title.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'"))
         )
         
-        if self.telegram_loaded:
+        if self.using_telegram and self.telegram_loaded:
             self.retro_sync_telegram.notify(message)
         
         #app_name = "RetroSync"
@@ -828,6 +831,10 @@ class RetroSync(object):
 if __name__ == '__main__':
     retro_sync = RetroSync()
     retro_sync.verbose = True
+    
+    if USING_TELEGRAM:
+        retro_sync.load_telegram()
+    
     while True:
         try:
             retro_sync.start()

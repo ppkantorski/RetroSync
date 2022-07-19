@@ -30,6 +30,8 @@ else:
         retro_sync_telegram = None
         RetroSyncTelegram = None
 
+
+
 sys.dont_write_bytecode = True
 
 
@@ -39,7 +41,10 @@ DEFAULT_RETROSYNC_CFG = {
     "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
     "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
     "using_icloud": True,
-    "using_modifications": True
+    "using_modifications": True,
+    "using_telegram": False,
+    "telegram_token": "",
+    "telegram_chat_id": ""
 }
 #from retro_sync import DEFAULT_RETROSYNC_CFG
 
@@ -62,13 +67,20 @@ class RetroSyncApp(object):
         # Overload the RetroSync notify function
         self.retro_sync.notify = self.notify
         
+        self.retro_sync_cfg = DEFAULT_RETROSYNC_CFG
         self.reload_config()
         
         # For detecting termination
         self.retro_sync_has_terminated = False
         
         # Load telegram (optional)
-        self.load_telegram()
+        self.telegram_loaded = False
+        if self.retro_sync_cfg['using_telegram']:
+            try:
+                self.load_telegram()
+            except:
+                self.telegram_loaded = False
+                self.retro_sync_cfg['using_telegram'] = False
         
         self.config = {
             "app_name": "RetroSync",
@@ -79,11 +91,14 @@ class RetroSyncApp(object):
             "auto_start_on": "\u2713 Auto-Start",
             "options": "Options...",
             "configure": "Configure...",#"\uD83C\uDFAE Configure...",
-            "set_snes_classic_ip": "Set SNES Classic IP",
             "set_ra_saves_loc": "Set RetroArch Saves Location",
             "set_stock_games_loc": "Set Stock Games Location",
+            "set_snes_classic_ip": "Set SNES Classic IP",
+            "set_telegram_credentials": "Set Telegram Credentials",
             "enable_modifications": "Enable Modifications",
             "disable_modifications": "Disable Modifications",
+            "enable_telegram": "Enable Telegram",
+            "disable_telegram": "Disable Telegram",
             "enable_icloud": "Enable iCloud Persistence",
             "disable_icloud": "Disable iCloud Persistence",
             "about": "About RetroSync 👾",
@@ -126,15 +141,17 @@ class RetroSyncApp(object):
                 self.config["options"],
                 [
                     self.toggle_modifications_button,
-                    self.toggle_icloud_button
+                    self.toggle_icloud_button,
+                    self.toggle_telegram_button
                 ]
             ),
             (
                 self.config["configure"],
                 [
-                    self.set_snes_classic_ip_button,
                     self.set_ra_saves_loc_button,
-                    self.set_stock_games_loc_button
+                    self.set_stock_games_loc_button,
+                    self.set_snes_classic_ip_button,
+                    self.set_telegram_credentials_button
                 ]
             ),
             None,
@@ -194,10 +211,6 @@ class RetroSyncApp(object):
             callback = self.quit_app,
             key = 'q'
         )
-        self.set_snes_classic_ip_button = rumps.MenuItem(
-            title = self.config["set_snes_classic_ip"],
-            callback = self.set_snes_classic_ip
-        )
         
         self.set_ra_saves_loc_button = rumps.MenuItem(
             title = self.config["set_ra_saves_loc"],
@@ -207,6 +220,17 @@ class RetroSyncApp(object):
             title = self.config["set_stock_games_loc"],
             callback = self.set_stock_games_loc
         )
+        
+        self.set_snes_classic_ip_button = rumps.MenuItem(
+            title = self.config["set_snes_classic_ip"],
+            callback = self.set_snes_classic_ip
+        )
+        self.set_telegram_credentials_button = rumps.MenuItem(
+            title = self.config["set_telegram_credentials"],
+            callback = self.set_telegram_credentials
+        )
+        
+        
         if not self.retro_sync_cfg["using_icloud"]:
             self.toggle_icloud_button = rumps.MenuItem(
                 title = self.config["enable_icloud"],
@@ -227,6 +251,17 @@ class RetroSyncApp(object):
             self.toggle_modifications_button = rumps.MenuItem(
                 title = self.config["disable_modifications"],
                 callback = self.toggle_modifications
+            )
+        
+        if not self.retro_sync_cfg["using_telegram"]:
+            self.toggle_telegram_button = rumps.MenuItem(
+                title = self.config["enable_telegram"],
+                callback = self.toggle_telegram
+            )
+        else:
+            self.toggle_telegram_button = rumps.MenuItem(
+                title = self.config["disable_telegram"],
+                callback = self.toggle_telegram
             )
     
     def reload_config(self):
@@ -268,6 +303,74 @@ class RetroSyncApp(object):
                 
                 self.notify("RetroSync Config", "SNES Classic IP has been updated.\nRestart RetroSync to apply changes.")
     
+    
+    def set_telegram_credentials(self, sender):
+        if sender.title == self.config["set_telegram_credentials"]:
+            
+            # load telegram configurations
+            load_failed = False
+            if os.path.exists(f'{telegram_path}/telegram_config.json'):
+                try:
+                    with open(f'{telegram_path}/telegram_config.json', 'r') as f:
+                        self.telegram_config = json.load(f)
+                    
+                    # Telegram settings
+                    self.telegram_token = self.telegram_config['token']
+                    self.telegram_chat_id = self.telegram_config['chat_id']
+                    
+                except:
+                    load_failed = True
+            else:
+                load_failed = True
+                
+                if load_failed:
+                    self.telegram_config = {
+                        "token": "",
+                        "chat_id": ""
+                    }
+                    # Telegram settings
+                    self.telegram_token = self.telegram_config['token']
+                    self.telegram_chat_id = self.telegram_config['chat_id']
+            
+            
+            
+            current_telegram_token = self.telegram_token
+            set_telegram_token_window = rumps.Window(
+                'Enter Telegram Bot Token',
+                'RetroSync Configurations',
+                default_text = current_telegram_token,
+                dimensions = (200, 20),
+                cancel = True
+            )
+            telegram_token = set_telegram_token_window.run().text.strip()
+            
+            if current_telegram_token != telegram_token:
+                self.telegram_config['token'] = telegram_token
+                
+                with open(f'{telegram_path}/telegram_config.json', 'w') as f:
+                    f.write(json.dumps(self.telegram_config, sort_keys=True, indent=4))
+                
+                self.notify("RetroSync Config", "Telegram Token has been updated.\nRestart RetroSync to apply changes.")
+            
+            current_telegram_chat_id = self.telegram_chat_id
+            set_telegram_chat_id_window = rumps.Window(
+                'Enter Telegram User Chat ID',
+                'RetroSync Configurations',
+                default_text = current_telegram_chat_id,
+                dimensions = (120, 20),
+                cancel = True
+            )
+            telegram_chat_id = set_telegram_chat_id_window.run().text.strip()
+            
+            if current_telegram_chat_id != telegram_chat_id:
+                self.telegram_config['chat_id'] = telegram_chat_id
+                
+                with open(f'{telegram_path}/telegram_config.json', 'w') as f:
+                    f.write(json.dumps(self.telegram_config, sort_keys=True, indent=4))
+                
+                self.notify("RetroSync Config", "Telegram Chat ID has been updated.\nRestart RetroSync to apply changes.")
+    
+    
     def set_ra_saves_loc(self, sender):
         if sender.title == self.config["set_ra_saves_loc"]:
             ra_saves_dir = self.retro_sync_cfg['ra_saves_dir']
@@ -294,6 +397,7 @@ class RetroSyncApp(object):
                 self.write_config()
                 
                 self.notify("RetroSync Config", "RetroArch Saves Location has been updated.\nRestart RetroSync to apply changes.")
+    
     
     def set_stock_games_loc(self, sender):
         if sender.title == self.config["set_stock_games_loc"]:
@@ -323,6 +427,30 @@ class RetroSyncApp(object):
                 self.notify("RetroSync Config", "Stock Games Location has been updated.\nRestart RetroSync to apply changes.")
     
     
+    def toggle_telegram(self, sender):
+        if sender.title == self.config["enable_telegram"]:
+            
+            self.reload_config()
+            self.retro_sync_cfg['using_telegram'] = True
+            self.write_config()
+            
+            sender.title = self.config["disable_telegram"]
+            
+            self.retro_sync.using_telegram = self.retro_sync_cfg['using_telegram']
+            self.notify("RetroSync Option", "Telegram has been enabled.")
+        
+        elif sender.title == self.config["disable_telegram"]:
+            
+            self.reload_config()
+            self.retro_sync_cfg['using_telegram'] = False
+            self.write_config()
+            
+            sender.title = self.config["enable_telegram"]
+            
+            self.retro_sync.using_telegram = self.retro_sync_cfg['using_telegram']
+            self.notify("RetroSync Option", "Telegram has been disabled.")
+    
+    
     def toggle_icloud(self, sender):
         if sender.title == self.config["enable_icloud"]:
             
@@ -333,7 +461,7 @@ class RetroSyncApp(object):
             sender.title = self.config["disable_icloud"]
             
             self.retro_sync.using_icloud = self.retro_sync_cfg['using_icloud']
-            self.notify("RetroSync Option", "iCloud Persistence has been enabled.\nRestart RetroSync to apply changes.")
+            self.notify("RetroSync Option", "iCloud Persistence has been enabled.")
         
         elif sender.title == self.config["disable_icloud"]:
             
@@ -344,7 +472,7 @@ class RetroSyncApp(object):
             sender.title = self.config["enable_icloud"]
             
             self.retro_sync.using_icloud = self.retro_sync_cfg['using_icloud']
-            self.notify("RetroSync Option", "iCloud persistence has been disabled.\nRestart RetroSync to apply changes.")
+            self.notify("RetroSync Option", "iCloud persistence has been disabled.")
     
     
     def toggle_modifications(self, sender):

@@ -23,6 +23,20 @@ Sync Retroarch saves between SNES classic and computer.
 
 sidenote: Python script should be compatible with Windows and Linux.
 
+## Telegram
+1.  On Telegram, add `BotFather` (https://t.me/BotFather) and create a new bot by requesting `/newbot`.
+2.  Fill out the information, name the bot accordingly.  BotFather will present you with a token.  Add your token to `telegram_cofig.json`.
+3.  Add `Telegram Bot Raw` (https://t.me/RawDataBot) and send it a message.  In its response, you will see something similar to tne following.
+```
+        "chat": {
+            "id": 1234567890,
+            ....
+        },
+```
+4.  Now add your chat ID to `telegram_config.json` and you should be good to go.
+
+sidenote: Feel free to use the provided image for the telegram bot.
+
 ## RetroSync iOS/iCloud (recommended)
 - You will need to set the RetroArch saves folder to `/{icloud_dir}/RetroArch/saves` in `config.json`.
 - Under Automation within the Shortcuts app on your iPhone, add **RetroSync iCloud to iOS** to RetroArch as an automation script for opening the RetroArch iOS app and **RetroSync iOS to iCloud** as an automation script for closing the RetroArch iOS app.

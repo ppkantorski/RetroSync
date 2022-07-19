@@ -11,7 +11,7 @@ Sync Retroarch saves between SNES classic and computer.
 ## Installation (App for macOS)
 1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
 2.  Unzip the repository to `/Users/{user_name}/Documents/RetroSync`.
-3.  Run the `python3 build.py` from within the designated directory. This will build `RetroSync.app` as well install the essential Python packages.
+3.  Run the `python3 build.py` from within the designated directory. This will build `RetroSync.app` as well as install the essential Python packages.
 4.  Move `RetroSync.app` to your applications folder.
 5.  `/data/config.json` will be auto-generated if it does not exist upon boot. Modify accordingly (in GUI under `Configure...` or manually with text editor) then restart.
 

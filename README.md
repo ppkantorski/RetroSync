@@ -2,6 +2,7 @@
 Sync Retroarch saves between SNES classic and computer.
 
 ![alt-text](https://i.imgur.com/XfA1fmF.png)
+![alt-text](https://i.imgur.com/jo4JVUA.jpg)
 ![alt-text](https://i.imgur.com/ENFLY63.png)
 
 - Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then converted and passed onto the other device.  Using this script is as simple running it on a computer, saving on either device, then seeing your battery save on the other device when starting up the game after about a minute or less.
@@ -24,9 +25,6 @@ Sync Retroarch saves between SNES classic and computer.
 sidenote: Python script should be compatible with Windows and Linux.
 
 ## Telegram Notifications Bot (optional)
-
-![alt-text](https://i.imgur.com/jo4JVUA.jpg)
-
 1.  On Telegram, add `BotFather` (https://t.me/BotFather) and create a new bot by requesting `/newbot`.
 2.  Fill out the information, name the bot accordingly.  BotFather will present you with a token.  Add your token to `telegram_cofig.json`.
 3.  Add `Telegram Bot Raw` (https://t.me/RawDataBot) and send it a message.  In its response, you will see something similar to tne following.

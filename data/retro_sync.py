@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -30,9 +30,29 @@ def install_and_import(package):
 # Import / Install ftpretty
 install_and_import('ftpretty')
 
+
+
+
 # Define script path
-script_path = os.path.dirname(os.path.abspath( __file__ ))
-sys.path.append(script_path)
+data_path = os.path.dirname(os.path.abspath( __file__ ))
+sys.path.append(data_path)
+
+
+# For telegram usage (optional)
+telegram_path = data_path.replace('/data', '/telegram')
+if not (os.path.exists(telegram_path)):
+    telegram_path = None
+    RetroSyncTelegram = None
+else:
+    sys.path.append(telegram_path)
+    try:
+        retro_sync_telegram = importlib.import_module('retro_sync_telegram')
+        RetroSyncTelegram = retro_sync_telegram.RetroSyncTelegram
+    except:
+        retro_sync_telegram = None
+        RetroSyncTelegram = None
+
+
 sys.dont_write_bytecode = True
 
 
@@ -41,7 +61,7 @@ sys.dont_write_bytecode = True
 # alias for now function
 now = dt.datetime.now
 
-RETRO_SYNC_DIR = script_path
+RETRO_SYNC_DIR = data_path
 LOCAL_CLASSIC_SAVES_TMP_DIR = f'{RETRO_SYNC_DIR}/save_data/snes_mini/.tmp/saves'
 LOCAL_CLASSIC_SAVES_DIR = f'{RETRO_SYNC_DIR}/save_data/snes_mini/saves'
 LOCAL_CLASSIC_META_DIR = f'{RETRO_SYNC_DIR}/save_data/snes_mini/meta'
@@ -65,9 +85,9 @@ DEFAULT_RETROSYNC_CFG = {
 
 
 load_failed = False
-if os.path.exists(f'{script_path}/config.json'):
+if os.path.exists(f'{data_path}/config.json'):
     try:
-        with open(f'{script_path}/config.json', 'r') as f:
+        with open(f'{data_path}/config.json', 'r') as f:
             cfg = json.load(f)
         # Target directory for retroarch saves
         SNES_CLASSIC_IP = cfg['snes_classic_ip']
@@ -81,10 +101,10 @@ if os.path.exists(f'{script_path}/config.json'):
     except:
         load_failed = True
     
-if not (os.path.exists(f'{script_path}/config.json')) or load_failed:
+if not (os.path.exists(f'{data_path}/config.json')) or load_failed:
     cfg = DEFAULT_RETROSYNC_CFG
     print("Generating config.json.")
-    with open(f'{script_path}/config.json', 'w') as f:
+    with open(f'{data_path}/config.json', 'w') as f:
         f.write(json.dumps(cfg, sort_keys=True, indent=4))
     print("Please configure config.json accordingly before running again.")
 
@@ -223,6 +243,14 @@ class RetroSync(object):
                 print(f'[{now()}] RetroArch Saves directory is empty.')
                 print(f'[{now()}] Saves will be populated from SNES.')
     
+    def load_telegram(self):
+        if not (RetroSyncTelegram is None):
+            self.retro_sync_telegram = RetroSyncTelegram()
+            self.telegram_loaded = True
+        else:
+            self.retro_sync_telegram = None
+            self.telegram_loaded = False
+    
     # For making object run in background
     def background_thread(self, target, args_list):
         args = ()
@@ -245,6 +273,9 @@ class RetroSync(object):
             """.format(message.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'"), \
                 title.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'"))
         )
+        
+        if self.telegram_loaded:
+            self.retro_sync_telegram.notify(message)
         
         #app_name = "RetroSync"
         #query = f'tell app "{app_name}" to display notification "{message}" with title "{title}"'
@@ -551,9 +582,9 @@ class RetroSync(object):
                 self.notify(title='RetroSync Overwrite', message=f'Retroarch save for {file_name} has been overwritten by Classic save.')
             elif target == 'snes':
                 shutil.copyfile(f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm', f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}/cartridge.sram')
-                self.notify(title='RetroSync Overwrite', message=f'Classic save for {file_name} has been overwritten by Retroarch save.')
                 if self.verbose:
                     print(f'[{now()}] Classic save for {file_name} has been overwritten by retroarch save.')
+                self.notify(title='RetroSync Overwrite', message=f'Classic save for {file_name} has been overwritten by Retroarch save.')
         elif save_type == 'canoe':
             file_name = self.canoe_game_id_dict[game_id]
             if target == 'retroarch':
@@ -568,7 +599,6 @@ class RetroSync(object):
                 from_file = f'{LOCAL_RA_SAVES_DIR}/{file_name}.srm'
                 to_dir = f'{LOCAL_CLASSIC_SAVES_DIR}/{game_id}'
                 self.convert_save_to_canoe(from_file, to_dir, game_id)
-                #shutil.copyfile(from_file, to_file)
                 self.notify(title='RetroSync Overwrite', message=f'Classic save for {file_name} has been overwritten by Retroarch save.')
                 if self.verbose:
                     print(f'[{now()}] Classic save for {file_name} has been overwritten by retroarch save.')

@@ -1,7 +1,8 @@
 # RetroSync (miniSNES Save Syncing)
 Sync Retroarch saves between SNES classic and computer.
 
-![alt-text](https://i.imgur.com/okP2PRD.png)![alt-text](https://i.imgur.com/ENFLY63.png)
+![alt-text](https://i.imgur.com/u4yhPg0.png)
+![alt-text](https://i.imgur.com/ze7xt1B.png)
 
 - Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then converted and passed onto the other device.  Using this script is as simple running it on a computer, saving on either device, then seeing your battery save on the other device when starting up the game after about a minute or less.
 

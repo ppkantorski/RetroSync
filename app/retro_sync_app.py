@@ -78,7 +78,8 @@ class RetroSyncApp(object):
         if self.retro_sync_cfg['using_telegram']:
             try:
                 self.load_telegram()
-            except:
+            except Exception as e:
+                print(e)
                 self.telegram_loaded = False
                 self.retro_sync_cfg['using_telegram'] = False
         
@@ -163,8 +164,12 @@ class RetroSyncApp(object):
     
     def load_telegram(self):
         if not (RetroSyncTelegram is None):
-            self.retro_sync_telegram = RetroSyncTelegram()
-            self.telegram_loaded = True
+            try:
+                self.retro_sync_telegram = RetroSyncTelegram()
+                self.telegram_loaded = True
+            except:
+                self.retro_sync_telegram = None
+                self.telegram_loaded = False
         else:
             self.retro_sync_telegram = None
             self.telegram_loaded = False

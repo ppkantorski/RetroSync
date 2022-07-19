@@ -24,12 +24,14 @@ Sync Retroarch saves between SNES classic and computer.
 2.  Fill out the information, name the bot accordingly.  BotFather will present you with a token.  Add your token to `telegram_cofig.json` (via text editor or from the macOS App).
 3.  Add `Telegram Bot Raw` (https://t.me/RawDataBot) and send it a message.  In its response, you will see something similar to tne following.
 ```
+    {
         ....
         "chat": {
             "id": 1234567890,
             ....
         },
         ....
+    }
 ```
 4.  Now add your chat ID to `telegram_config.json` (via text editor or from the macOS App) and you should be good to go.
 

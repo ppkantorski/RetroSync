@@ -1,5 +1,5 @@
 __author__ = "Patrick Kantorski"
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
@@ -15,18 +15,33 @@ import json
 app_path = os.path.dirname(os.path.abspath( __file__ ))
 data_path = app_path.replace('/app', '/data')
 sys.path.append(data_path)
+
+# For telegram usage (optional)
+telegram_path = app_path.replace('/app', '/telegram')
+if not (os.path.exists(telegram_path)):
+    telegram_path = None
+    RetroSyncTelegram = None
+else:
+    sys.path.append(telegram_path)
+    try:
+        retro_sync_telegram = importlib.import_module('retro_sync_telegram')
+        RetroSyncTelegram = retro_sync_telegram.RetroSyncTelegram
+    except:
+        retro_sync_telegram = None
+        RetroSyncTelegram = None
+
 sys.dont_write_bytecode = True
 
 
-#username = os.environ.get('USER', os.environ.get('USERNAME'))
-#DEFAULT_RETROSYNC_CFG = {
-#    "snes_classic_ip": "0.0.0.0",
-#    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
-#    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
-#    "using_icloud": True,
-#    "using_modifications": True
-#}
-from retro_sync import DEFAULT_RETROSYNC_CFG
+username = os.environ.get('USER', os.environ.get('USERNAME'))
+DEFAULT_RETROSYNC_CFG = {
+    "snes_classic_ip": "0.0.0.0",
+    "ra_saves_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/saves",
+    "ra_stock_games_dir": f"/Users/{username}/Library/Mobile Documents/com~apple~CloudDocs/RetroArch/games/snes/Classic",
+    "using_icloud": True,
+    "using_modifications": True
+}
+#from retro_sync import DEFAULT_RETROSYNC_CFG
 
 if not os.path.exists(f'{data_path}/config.json'):
     print("Generating config.json.")
@@ -51,6 +66,9 @@ class RetroSyncApp(object):
         
         # For detecting termination
         self.retro_sync_has_terminated = False
+        
+        # Load telegram (optional)
+        self.load_telegram()
         
         self.config = {
             "app_name": "RetroSync",
@@ -125,6 +143,14 @@ class RetroSyncApp(object):
             self.restart_button
             #self.quit_button
         ]
+    
+    def load_telegram(self):
+        if not (RetroSyncTelegram is None):
+            self.retro_sync_telegram = RetroSyncTelegram()
+            self.telegram_loaded = True
+        else:
+            self.retro_sync_telegram = None
+            self.telegram_loaded = False
     
     # Run app alias
     def run(self):
@@ -307,7 +333,7 @@ class RetroSyncApp(object):
             sender.title = self.config["disable_icloud"]
             
             self.retro_sync.using_icloud = self.retro_sync_cfg['using_icloud']
-            self.notify("RetroSync Option", "iCloud Persistence has been disabled.\nRestart RetroSync to apply changes.")
+            self.notify("RetroSync Option", "iCloud Persistence has been enabled.\nRestart RetroSync to apply changes.")
         
         elif sender.title == self.config["disable_icloud"]:
             
@@ -318,7 +344,7 @@ class RetroSyncApp(object):
             sender.title = self.config["enable_icloud"]
             
             self.retro_sync.using_icloud = self.retro_sync_cfg['using_icloud']
-            self.notify("RetroSync Option", "iCloud persistence has been enabled.\nRestart RetroSync to apply changes.")
+            self.notify("RetroSync Option", "iCloud persistence has been disabled.\nRestart RetroSync to apply changes.")
     
     
     def toggle_modifications(self, sender):
@@ -332,7 +358,7 @@ class RetroSyncApp(object):
             
             
             self.retro_sync.using_modifications = self.retro_sync_cfg['using_modifications']
-            self.notify("RetroSync Option", "Modifications has been disabled.")
+            self.notify("RetroSync Option", "Modifications has been enabled.")
         
         elif sender.title == self.config["disable_modifications"]:
             
@@ -343,7 +369,7 @@ class RetroSyncApp(object):
             sender.title = self.config["enable_modifications"]
             
             self.retro_sync.using_modifications = self.retro_sync_cfg['using_modifications']
-            self.notify("RetroSync Option", "Modifications has been enabled.")
+            self.notify("RetroSync Option", "Modifications has been disabled.")
     
     
     def restart_app(self, sender):
@@ -434,6 +460,10 @@ class RetroSyncApp(object):
         background_thread(self.notify_command, [title, message])
     
     def notify_command(self, title, message):
+        if self.telegram_loaded:
+            self.retro_sync_telegram.notify(message=message)
+        
+        
         title = title.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'")
         message = message.replace('"', '\\"').replace("'", "'"+'"\'"'+"\'")
         app_name = self.config["app_name"].replace('"', '\\"').replace("'", "'"+'"\'"'+"\'")

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+__author__ = "Patrick Kantorski"
+__version__ = "1.0.8"
+__maintainer__ = "Patrick Kantorski"
+__status__ = "Development Build"
+
+
 import telegram#, emoji
 from telegram.ext.updater import Updater
 from telegram.update import Update

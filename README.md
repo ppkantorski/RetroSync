@@ -24,6 +24,9 @@ Sync Retroarch saves between SNES classic and computer.
 sidenote: Python script should be compatible with Windows and Linux.
 
 ## Telegram Notifications Bot (optional)
+
+![alt-text](https://i.imgur.com/oUEvxuo.jpg)
+
 1.  On Telegram, add `BotFather` (https://t.me/BotFather) and create a new bot by requesting `/newbot`.
 2.  Fill out the information, name the bot accordingly.  BotFather will present you with a token.  Add your token to `telegram_cofig.json`.
 3.  Add `Telegram Bot Raw` (https://t.me/RawDataBot) and send it a message.  In its response, you will see something similar to tne following.

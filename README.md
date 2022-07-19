@@ -18,6 +18,7 @@ Sync Retroarch saves between SNES classic and computer.
 
 ## Telegram Notifications Bot (optional)
 ![alt-text](https://i.imgur.com/jo4JVUA.jpg)
+![alt-text](https://i.imgur.com/nwsJ1uW.jpg)
 
 1.  On Telegram, add `BotFather` (https://t.me/BotFather) and create a new bot by requesting `/newbot`.
 2.  Fill out the information, name the bot accordingly.  BotFather will present you with a token.  Add your token to `telegram_cofig.json`.

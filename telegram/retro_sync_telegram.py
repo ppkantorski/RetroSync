@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 __author__ = "Patrick Kantorski"
 __version__ = "1.0.8"
 __maintainer__ = "Patrick Kantorski"
 __status__ = "Development Build"
 
-
+import os, sys
+sys.dont_write_bytecode = True
 import telegram#, emoji
 from telegram.ext.updater import Updater
 from telegram.update import Update
@@ -15,7 +15,6 @@ from telegram.ext.filters import Filters
 from telegram.ext import CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import threading
-import os, sys
 import pprint
 import time
 import datetime as dt
@@ -26,8 +25,10 @@ import json
 
 # Define script path
 telegram_path = os.path.dirname(os.path.abspath( __file__ ))
-sys.path.append(telegram_path)
-sys.dont_write_bytecode = True
+data_path = telegram_path.replace('/telegram', '/data')
+
+sys.path.append(data_path)
+
 
 
 

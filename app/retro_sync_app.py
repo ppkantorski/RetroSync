@@ -339,7 +339,7 @@ class RetroSyncApp(object):
                 'Enter Telegram Bot Token',
                 'RetroSync Configurations',
                 default_text = current_telegram_token,
-                dimensions = (200, 20),
+                dimensions = (360, 20),
                 cancel = True
             )
             telegram_token = set_telegram_token_window.run().text.strip()
@@ -357,7 +357,7 @@ class RetroSyncApp(object):
                 'Enter Telegram User Chat ID',
                 'RetroSync Configurations',
                 default_text = current_telegram_chat_id,
-                dimensions = (120, 20),
+                dimensions = (84, 20),
                 cancel = True
             )
             telegram_chat_id = set_telegram_chat_id_window.run().text.strip()

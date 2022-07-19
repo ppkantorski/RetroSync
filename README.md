@@ -3,7 +3,6 @@ Sync Retroarch saves between SNES classic and computer.
 
 ![alt-text](https://i.imgur.com/XfA1fmF.png)
 ![alt-text](https://i.imgur.com/ENFLY63.png)
-![alt-text](https://i.imgur.com/jo4JVUA.jpg)
 
 - Whenever a new battery save is generated (whether on computer directory or on snes classic) that new battery save is then converted and passed onto the other device.  Using this script is as simple running it on a computer, saving on either device, then seeing your battery save on the other device when starting up the game after about a minute or less.
 
@@ -16,15 +15,10 @@ Sync Retroarch saves between SNES classic and computer.
 4.  Move `RetroSync.app` to your applications folder.
 5.  `/data/config.json` will be auto-generated if it does not exist upon boot. Modify accordingly (in GUI under `Configure...` or manually with text editor) then restart.
 
-## Installation (for just Python usage)
-1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
-2.  Add the local IP for the SNES classic to `config.json` along with the retroarch folder on your computer you want to sync.
-3.  To use the script enter `python3 /path/to/script/retro_sync.py` on the Command-Line.
-4.  You can also use the `deploy.zsh` script to launch retro_sync in the background via Screen GNU.  To reattach to the process, type `screen -r retro_sync`.  To detatch, press `CTRL+A, CTRL+D`.
-
-sidenote: Python script should be compatible with Windows and Linux.
 
 ## Telegram Notifications Bot (optional)
+![alt-text](https://i.imgur.com/jo4JVUA.jpg)
+
 1.  On Telegram, add `BotFather` (https://t.me/BotFather) and create a new bot by requesting `/newbot`.
 2.  Fill out the information, name the bot accordingly.  BotFather will present you with a token.  Add your token to `telegram_cofig.json`.
 3.  Add `Telegram Bot Raw` (https://t.me/RawDataBot) and send it a message.  In its response, you will see something similar to tne following.
@@ -37,6 +31,7 @@ sidenote: Python script should be compatible with Windows and Linux.
 4.  Now add your chat ID to `telegram_config.json` and you should be good to go.
 
 sidenote: Feel free to use the provided image for the telegram bot.
+
 
 ## RetroSync iOS/iCloud (recommended)
 - You will need to set the RetroArch saves folder to `/{icloud_dir}/RetroArch/saves` in `config.json`.
@@ -58,3 +53,12 @@ https://www.icloud.com/shortcuts/5a9e26091cc34e7293cc2927f3242302
 https://www.icloud.com/shortcuts/ad522b16a20a474c87f7a768fb278f7d
 
 **sidenote:** If any of the folders on these Shortcuts are broken for some reason, just edit the Shortcut and point them to the correct directories.
+
+
+## Installation (for just Python usage)
+1.  You will need to have Hakchi CE installed on your SNES classic with wpa configured along with a OTG + WIFI dongle.
+2.  Add the local IP for the SNES classic to `config.json` along with the retroarch folder on your computer you want to sync.
+3.  To use the script enter `python3 /path/to/script/retro_sync.py` on the Command-Line.
+4.  You can also use the `deploy.zsh` script to launch retro_sync in the background via Screen GNU.  To reattach to the process, type `screen -r retro_sync`.  To detatch, press `CTRL+A, CTRL+D`.
+
+sidenote: Python script should be compatible with Windows and Linux.

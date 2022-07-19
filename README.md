@@ -23,7 +23,7 @@ Sync Retroarch saves between SNES classic and computer.
 
 sidenote: Python script should be compatible with Windows and Linux.
 
-## RetroSync iOS/iCloud (optional)
+## RetroSync iOS/iCloud (recommended)
 - You will need to set the RetroArch saves folder to `/{icloud_dir}/RetroArch/saves` in `config.json`.
 - Under Automation within the Shortcuts app on your iPhone, add **RetroSync iCloud to iOS** to RetroArch as an automation script for opening the RetroArch iOS app and **RetroSync iOS to iCloud** as an automation script for closing the RetroArch iOS app.
 - On the iPhone itself, new saves are pulled when the app is opened then pushed when the app is closed.
